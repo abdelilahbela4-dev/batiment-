@@ -391,7 +391,7 @@ main { padding-top: var(--header-h); }
    viewport ~180vh of scrub before releasing — Apple-page cadence, about two
    scroll gestures, and the closing text (After) lands right on the last frame. */
 .beat--open  { min-height: calc(100svh - var(--header-h)); }
-.beat--close { min-height: 350svh; }
+.beat--close { min-height: 500svh; }
 .beat__inner {
   width: 100%; max-width: var(--wrap);
   margin-inline: auto;
@@ -2189,7 +2189,7 @@ html.js .h-display.is-in em, html.js .h-display-sm.is-in em {
   .confirm__cols { grid-template-columns: 1fr; }
 
   /* --- hero / stage mobile (9:16 video frames) --- */
-  .beat--close { min-height: 250svh; }
+  .beat--close { min-height: 400svh; }
   .beat__inner {
     grid-template-columns: minmax(0, 1fr);
     padding-inline: var(--sp-4);

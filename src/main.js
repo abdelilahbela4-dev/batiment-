@@ -219,7 +219,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
 
   // Heavy dampening so the sequence always progresses slowly and cinematically,
   // even during a fast scroll/swipe.
-  const ease = mobile ? 0.05 : 0.06;
+  const ease = mobile ? 0.04 : 0.03;
 
   const step = () => {
     scrollEased += (scrollTarget - scrollEased) * ease;
