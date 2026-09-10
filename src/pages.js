@@ -75,13 +75,11 @@ function homePage(ctx) {
   /* -- build / services overview -- */
   const services = h.services.items
     .map(
-      (s, i) => `<li class="build-list__item" data-stage="${s.stage}"${i === 0 ? ' data-stage-first' : ''}>
-    <span class="build-list__n" aria-hidden="true">${s.n}</span>
-    <div>
-      <h3>${s.title}</h3>
-      <p>${s.body}</p>
-      <a class="text-link" href="${url('devis')}">${t.common.ctaDevis}</a>
-    </div>
+      (s, i) => `<li class="build-card" data-stage="${s.stage}"${i === 0 ? ' data-stage-first' : ''}>
+    <span class="build-card__n" aria-hidden="true">${s.n}</span>
+    <h3 class="build-card__title">${s.title}</h3>
+    <p class="build-card__body">${s.body}</p>
+    <a class="build-card__link" href="${url('devis')}">${t.common.ctaDevis} &rarr;</a>
   </li>`
     )
     .join('');
@@ -179,13 +177,16 @@ function homePage(ctx) {
 </section>
 
 <section class="section section--ink build" id="prestations" data-build-section>
-  <div class="wrap build__grid">
-    <div class="build__sticky">
+  <div class="build__blueprint" aria-hidden="true">
+    ${buildSequenceSvg()}
+  </div>
+  <div class="wrap build__wrap">
+    <header class="build__header" data-reveal>
+      <p class="build__label">Nos services</p>
       <h2 class="h-display build__title">${h.services.title}</h2>
-      <p class="build__sub">${h.services.sub}</p>
-      ${buildSequenceSvg()}
-    </div>
-    <ol class="build-list" data-reveal-stagger>${services}</ol>
+      <p class="build__intro">${h.services.sub}</p>
+    </header>
+    <ol class="build-grid" data-reveal-stagger>${services}</ol>
   </div>
 </section>
 
