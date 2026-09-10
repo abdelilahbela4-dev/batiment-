@@ -2244,14 +2244,58 @@ html.js .h-display.is-in em, html.js .h-display-sm.is-in em {
   }
   .stage__marker--after::before { background: linear-gradient(to right, var(--papier), transparent); }
 
-  /* --- build list mobile: stack number above content --- */
+  /* --- build section mobile redesign --- */
+  .build__sticky {
+    min-height: 0;
+    margin-bottom: var(--sp-4);
+  }
+  .build-house { display: none; }
+  .build__title {
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+    max-width: 100%;
+    text-align: center;
+    margin-bottom: var(--sp-2);
+  }
+  .build__sub {
+    display: none;
+  }
+  .build-list {
+    gap: var(--sp-3);
+  }
   .build-list__item {
     grid-template-columns: 1fr;
-    gap: var(--sp-2);
+    gap: 0;
+    padding: var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-4);
+    border-top: none;
+    border-left: 3px solid var(--sanguine-hi);
+    background: color-mix(in oklch, var(--papier) 6%, transparent);
+    position: relative;
+    opacity: 1;
+    overflow: hidden;
   }
-  .build-list__item h3 { font-size: var(--type-lg); }
-  .build__title { font-size: clamp(1.6rem, 6vw, 2.4rem); max-width: 100%; }
-  .build__sub { max-width: 100%; }
+  .build-list__item:last-child { border-bottom: none; }
+  .build-list__n {
+    font-size: 2.8rem;
+    letter-spacing: -0.04em;
+    opacity: 0.12;
+    position: absolute;
+    top: var(--sp-2);
+    right: var(--sp-3);
+    padding-top: 0;
+    color: var(--papier);
+  }
+  .build-list__item h3 {
+    font-size: var(--type-lg);
+    margin-bottom: var(--sp-1);
+  }
+  .build-list__item p {
+    font-size: var(--type-sm);
+    margin-bottom: var(--sp-2);
+    line-height: 1.5;
+  }
+  .build-list__item .text-link {
+    font-size: var(--type-xs);
+  }
 
   /* --- other sections --- */
   .price__inner { grid-template-columns: 1fr; }
