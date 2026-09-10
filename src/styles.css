@@ -126,6 +126,7 @@ address { font-style: normal; }
   max-width: var(--wrap);
   margin-inline: auto;
   padding-inline: var(--gutter);
+  min-width: 0;
 }
 
 /* ---------- type primitives ---------- */
@@ -2202,17 +2203,19 @@ html.js .h-display.is-in em, html.js .h-display-sm.is-in em {
     align-items: center;
   }
   .beat--open .hero__title {
-    font-size: clamp(2rem, 9vw, 2.8rem);
+    font-size: clamp(1.8rem, 8vw, 2.6rem);
     text-align: center;
-    max-width: none;
+    max-width: 100%;
     line-height: 1.08;
     letter-spacing: -0.03em;
     margin-top: clamp(var(--sp-4), 4vh, var(--sp-5));
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
   .beat--open .hero__sub {
     font-size: var(--type-sm);
     text-align: center;
-    max-width: 36ch;
+    max-width: 100%;
     align-self: center;
   }
   .beat--open .hero__actions {
@@ -2226,9 +2229,10 @@ html.js .h-display.is-in em, html.js .h-display-sm.is-in em {
   .hero__call { text-align: center; }
   .beat__title {
     font-size: clamp(1.6rem, 7vw, 2.2rem);
-    max-width: none;
+    max-width: 100%;
+    overflow-wrap: break-word;
   }
-  .beat__text { font-size: var(--type-sm); max-width: none; }
+  .beat__text { font-size: var(--type-sm); max-width: 100%; }
   .stage__marker {
     grid-row: 1; justify-self: start;
     writing-mode: horizontal-tb; letter-spacing: 0.28em;
@@ -2239,6 +2243,15 @@ html.js .h-display.is-in em, html.js .h-display-sm.is-in em {
     background: linear-gradient(to right, var(--sanguine-hi), transparent);
   }
   .stage__marker--after::before { background: linear-gradient(to right, var(--papier), transparent); }
+
+  /* --- build list mobile: stack number above content --- */
+  .build-list__item {
+    grid-template-columns: 1fr;
+    gap: var(--sp-2);
+  }
+  .build-list__item h3 { font-size: var(--type-lg); }
+  .build__title { font-size: clamp(1.6rem, 6vw, 2.4rem); max-width: 100%; }
+  .build__sub { max-width: 100%; }
 
   /* --- other sections --- */
   .price__inner { grid-template-columns: 1fr; }
@@ -2255,15 +2268,29 @@ html.js .h-display.is-in em, html.js .h-display-sm.is-in em {
   .filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
   .filters::-webkit-scrollbar { display: none; }
   .filter-btn { flex: none; }
+
+  /* --- project cards mobile --- */
+  .project__body { max-width: 100%; overflow-wrap: break-word; }
+
+  /* --- story / about section --- */
+  .story__text { max-width: 100%; overflow-wrap: break-word; }
+
   .stats-band .wrap { padding-block: var(--sp-5); }
   .stats { grid-template-columns: 1fr 1fr; column-gap: var(--sp-3); row-gap: var(--sp-4); }
   .stats .stat:first-child { grid-column: 1 / -1; grid-row: auto; }
   .stat:first-child .stat__value { font-size: clamp(3rem, 12vw, 4.6rem); }
   .site-footer__inner { grid-template-columns: 1fr; }
+  .site-footer__brand p { max-width: 100%; }
+  .site-footer__hours { font-size: 0.72rem; gap: 4px var(--sp-2); }
   .featured__small { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
   .cta-band__actions { flex-direction: column; align-items: stretch; }
   .cta-band__actions .btn { justify-content: center; }
-  main { padding-bottom: 96px; }
+  .cta-band h2 { font-size: clamp(1.6rem, 6vw, 2.4rem); max-width: 100%; overflow-wrap: break-word; }
+
+  /* --- action bar: compact and properly sized --- */
+  .action-bar .btn { padding-block: var(--sp-3); font-size: var(--type-sm); }
+
+  main { padding-bottom: 80px; }
 }
 
 @media (max-width: 640px) {
