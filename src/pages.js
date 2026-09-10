@@ -513,14 +513,6 @@ function devisPage(ctx) {
             <button class="btn btn--primary btn--lg" type="submit" data-submit hidden>${icon('check')}${d.nav.submit}</button>
           </div>
         </form>
-
-        <aside class="estimate" data-estimate aria-live="polite">
-          <h2 class="estimate__title">${d.estimate.title}</h2>
-          <div class="estimate__body" data-estimate-body>
-            <p class="estimate__empty">${d.estimate.empty}</p>
-          </div>
-          <p class="estimate__disclaimer">${d.estimate.disclaimer}</p>
-        </aside>
       </div>
 
       <div class="confirm" data-confirm hidden>

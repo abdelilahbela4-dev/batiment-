@@ -560,8 +560,8 @@ export const content = {
         errors: {
           name: 'Indiquez votre nom pour que l’on sache à qui parler.',
           email: 'Cet e-mail semble incomplet.',
-          phone: 'Un numéro à 10 chiffres nous évite de nous tromper.',
-          zip: 'Le code postal contient 5 chiffres.',
+          phone: 'Numéro de téléphone invalide.',
+          zip: 'Code postal invalide.',
           consent: 'Sans votre accord, nous ne pouvons pas vous rappeler.',
         },
       },

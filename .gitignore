@@ -3,3 +3,5 @@ dist/
 .env
 shots/
 video_home_page/
+
+.vercel

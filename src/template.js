@@ -62,10 +62,7 @@ export function icon(name, cls = 'icon') {
   return `<span class="${cls}" data-icon="${name}">${svg}</span>`;
 }
 
-// Logo mark: DESTPEC monogram set as a plan-view mark, not a house-in-a-box.
-// A sharp square with a subtracted D corner ("D estampée"), reading as both
-// a stamp and the D in the wordmark.
-const logoSvg = `<svg viewBox="0 0 34 34" aria-hidden="true" class="logo-mark"><rect x="1" y="1" width="32" height="32" class="logo-square"/><path d="M9 8h9a7 7 0 0 1 7 7v4a7 7 0 0 1-7 7H9V8z M14 13v10h4a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-4z" class="logo-house" fill-rule="evenodd"/></svg>`;
+const logoImg = `<img src="/assets/media/logo-am.png" alt="AM Construction" class="logo-mark" width="120" height="68">`;
 
 function head(ctx, title, desc, extra = '') {
   const { lang, urlOther } = ctx;
@@ -118,9 +115,8 @@ function header(ctx) {
   return `<a class="skip-link" href="#main">${t.code === 'fr' ? 'Aller au contenu' : 'Skip to content'}</a>
 <header class="site-header" data-header>
   <div class="site-header__inner">
-    <a class="site-logo" href="${url('home')}" aria-label="DESTPEC Bâtiment">
-      ${logoSvg}
-      <span class="site-logo__text"><strong>DESTPEC</strong><em>Bâtiment · Belfort</em></span>
+    <a class="site-logo" href="${url('home')}" aria-label="AM Construction">
+      ${logoImg}
     </a>
     <nav class="site-nav" aria-label="${t.code === 'fr' ? 'Navigation principale' : 'Main navigation'}">
       <ul>${navItems}</ul>
@@ -160,9 +156,8 @@ function footer(ctx) {
   return `<footer class="site-footer">
   <div class="site-footer__inner">
     <div class="site-footer__brand">
-      <a class="site-logo site-logo--footer" href="${url('home')}" aria-label="DESTPEC Bâtiment">
-        ${logoSvg}
-        <span class="site-logo__text"><strong>DESTPEC</strong><em>Bâtiment · Belfort</em></span>
+      <a class="site-logo site-logo--footer" href="${url('home')}" aria-label="AM Construction">
+        ${logoImg}
       </a>
       <p>${t.common.footerTagline}</p>
       <ul class="site-footer__hours">${hours}</ul>
@@ -307,9 +302,8 @@ function devisOverlay(ctx) {
     <!-- Step 3: Votre projet -->
     <section class="dov__step" data-dov-step="2" hidden>
       <h2 class="dov__title">${isFr ? 'Votre projet' : 'Your project'}</h2>
-      <p class="dov__sub">${isFr ? 'Ces détails affinent votre estimation.' : 'These details refine your estimate.'}</p>
-      <div class="dov-project-grid">
-        <div class="dov-project-left">
+      <p class="dov__sub">${isFr ? 'Ces détails nous aident à préparer votre devis.' : 'These details help us prepare your quote.'}</p>
+      <div>
           <fieldset class="dov-fieldset"><legend>${isFr ? 'Budget estimé' : 'Estimated budget'}</legend><div class="dov-chips">${budgetChips}</div></fieldset>
           <fieldset class="dov-fieldset"><legend>${isFr ? 'Délai souhaité' : 'Desired timeline'}</legend><div class="dov-chips">${delayChips}</div></fieldset>
           <div class="dov-field dov-field--full">
@@ -321,14 +315,6 @@ function devisOverlay(ctx) {
               <ul class="dov-upload__list" data-dov-upload-list></ul>
             </div>
           </div>
-        </div>
-        <aside class="dov-estimate" data-dov-estimate>
-          <div class="dov-estimate__head">${icon('euro')} ${isFr ? 'Estimation indicative' : 'Indicative estimate'}</div>
-          <div class="dov-estimate__body" data-dov-estimate-body>
-            <p class="dov-estimate__empty">${isFr ? 'Choisissez un type de projet à l\'étape 1 pour voir une estimation.' : 'Choose a project type in step 1 to see an estimate.'}</p>
-          </div>
-          <p class="dov-estimate__note">${isFr ? 'Estimation indicative — le devis final est gratuit et précis.' : 'Indicative estimate — the final quote is free and precise.'}</p>
-        </aside>
       </div>
     </section>
 
@@ -389,8 +375,8 @@ function devisOverlay(ctx) {
     lname: isFr ? 'Indiquez votre nom.' : 'Enter your last name.',
     fname: isFr ? 'Indiquez votre prénom.' : 'Enter your first name.',
     email: isFr ? 'Cet e-mail semble incomplet.' : 'This email seems incomplete.',
-    phone: isFr ? 'Un numéro à 10 chiffres.' : 'A 10-digit number.',
-    zip: isFr ? 'Code postal à 5 chiffres.' : '5-digit postal code.',
+    phone: isFr ? 'Numéro de téléphone invalide.' : 'Invalid phone number.',
+    zip: isFr ? 'Code postal invalide.' : 'Invalid postal code.',
     city: isFr ? 'Indiquez la ville.' : 'Enter the city.',
   },
 })}</script>`;

@@ -56,7 +56,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
 
 /* ---------- reveal on scroll ---------- */
 (() => {
-  const els = document.querySelectorAll('[data-reveal], [data-reveal-stagger], [data-reveal-left]');
+  const els = document.querySelectorAll('[data-reveal], [data-reveal-stagger], [data-reveal-left], [data-reveal-scale]');
   if (!els.length) return;
   if (reducedMotion) {
     els.forEach((el) => el.classList.add('is-in'));
@@ -550,7 +550,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const btnPrev = root.querySelector('[data-prev]');
   const btnNext = root.querySelector('[data-next]');
   const btnSubmit = root.querySelector('[data-submit]');
-  const estimateBody = root.querySelector('[data-estimate-body]');
   const aidsPanel = root.querySelector('[data-aids-panel]');
   const surfaceInput = root.querySelector('[data-surface]');
   const surfaceOut = root.querySelector('[data-surface-out]');
@@ -617,37 +616,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     return { kind, mpr, cee, total: mpr + cee };
   }
 
-  /* --- estimate aside render --- */
-  function renderEstimate() {
-    const range = currentRange();
-    // Drives progressive disclosure: on narrow screens the panel stays out of
-    // the way until it has a number to show.
-    root.toggleAttribute('data-has-estimate', Boolean(range));
-    if (!range) {
-      estimateBody.innerHTML = `<p class="estimate__empty">${S.estimateEmpty}</p>`;
-      return;
-    }
-    const typeLabel = CFG.typeLabels[state.type];
-    const perM2 = S.perM2.replace('{price}', `${fmtNum.format(range.perLow)}–${fmtNum.format(range.perHigh)}`);
-    const aids = computeAids();
-    let aidsHtml = '';
-    if (aids) {
-      aidsHtml = `<div class="estimate__aids">
-        <div class="estimate__row"><span>${S.totalAids}</span><strong>− ${fmtEUR.format(aids.total)}</strong></div>
-        <div class="estimate__row"><span>${S.net}</span><strong>${fmtEUR.format(Math.max(range.low - aids.total, 0))} – ${fmtEUR.format(Math.max(range.high - aids.total, 0))}</strong></div>
-      </div>`;
-    }
-    estimateBody.innerHTML = `
-      <div class="estimate__row"><span>${S.surface}</span><strong>${fmtNum.format(state.surface)} m²</strong></div>
-      <div class="estimate__row"><span>${lang === 'fr' ? 'Projet' : 'Project'}</span><strong>${typeLabel}</strong></div>
-      <div class="estimate__range">
-        <small>${S.range}</small>
-        <div class="estimate__value">${fmtEUR.format(range.low)} – ${fmtEUR.format(range.high)}</div>
-        <div class="estimate__perm2">${perM2}</div>
-        <div class="estimate__vat">${S.vat}</div>
-      </div>
-      ${aidsHtml}`;
-  }
+  function renderEstimate() {}
 
   /* --- aids panel (step 3) render --- */
   function renderAids() {
@@ -732,8 +701,8 @@ document.querySelectorAll('[data-year]').forEach((el) => {
       const zip = get('zip').value.trim();
       if (!name) { setError('name', S.errors.name); ok = false; } else setError('name', '');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { setError('email', S.errors.email); ok = false; } else setError('email', '');
-      if (!/^(\+33|0033|0)\d{9}$/.test(phone)) { setError('phone', S.errors.phone); ok = false; } else setError('phone', '');
-      if (!/^\d{5}$/.test(zip)) { setError('zip', S.errors.zip); ok = false; } else setError('zip', '');
+      if (!/^\+?\d{7,15}$/.test(phone)) { setError('phone', S.errors.phone); ok = false; } else setError('phone', '');
+      if (zip && !/^[A-Za-z0-9\s\-]{3,10}$/.test(zip)) { setError('zip', S.errors.zip); ok = false; } else setError('zip', '');
       if (!get('consent').checked) { setError('consent', S.errors.consent); ok = false; } else setError('consent', '');
       return ok;
     }
@@ -1064,7 +1033,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const btnNext = overlay.querySelector('[data-dov-next]');
   const btnSubmit = overlay.querySelector('[data-dov-submit]');
   const confirmEl = overlay.querySelector('[data-dov-confirm]');
-  const estimateBody = overlay.querySelector('[data-dov-estimate-body]');
 
   const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
   const state = { step: 0, types: [], desc: '', lname: '', fname: '', email: '', phone: '', pref: 'email', budget: '', delay: '', photos: [], address: '', zip: '', city: '', consent: false };
@@ -1139,14 +1107,14 @@ document.querySelectorAll('[data-year]').forEach((el) => {
       if (!state.lname.trim()) { setErr('lname', CFG.errors.lname); ok = false; }
       if (!state.fname.trim()) { setErr('fname', CFG.errors.fname); ok = false; }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(state.email)) { setErr('email', CFG.errors.email); ok = false; }
-      if (!/^(\+33|0033|0)\d{9}$/.test(state.phone.replace(/[\s.\-]/g, ''))) { setErr('phone', CFG.errors.phone); ok = false; }
+      if (!/^\+?\d{7,15}$/.test(state.phone.replace(/[\s.\-]/g, ''))) { setErr('phone', CFG.errors.phone); ok = false; }
       return ok;
     }
     if (n === 2) return true;
     if (n === 3) {
       readStep3();
       let ok = true;
-      if (!/^\d{5}$/.test(state.zip)) { setErr('zip', CFG.errors.zip); ok = false; }
+      if (state.zip && !/^[A-Za-z0-9\s\-]{3,10}$/.test(state.zip)) { setErr('zip', CFG.errors.zip); ok = false; }
       if (!state.city.trim()) { setErr('city', CFG.errors.city); ok = false; }
       return ok;
     }
@@ -1185,24 +1153,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const consentBox = overlay.querySelector('[data-dov-consent]');
   if (consentBox) consentBox.addEventListener('change', () => { state.consent = consentBox.checked; });
 
-  /* -- estimate -- */
-  function renderEstimate() {
-    readStep0(); readStep2();
-    if (!state.types.length || !estimateBody) {
-      estimateBody.innerHTML = `<p class="dov-estimate__empty">${isFr ? 'Choisissez un type de projet à l\'étape 1.' : 'Choose a project type in step 1.'}</p>`;
-      return;
-    }
-    const t = state.types[0];
-    const P = CFG.prices[t];
-    if (!P) { estimateBody.innerHTML = `<p class="dov-estimate__empty">${isFr ? 'Pas d\'estimation pour ce type.' : 'No estimate for this type.'}</p>`; return; }
-    const S = CFG.surface[t] || { start: 100 };
-    const surface = S.start;
-    const low = P.low * surface;
-    const high = P.high * surface;
-    estimateBody.innerHTML = `
-      <div class="dov-estimate__range">${fmtEUR.format(low)} – ${fmtEUR.format(high)}</div>
-      <div class="dov-estimate__perm2">${fmtNum.format(P.low)} – ${fmtNum.format(P.high)} €/m² · ${fmtNum.format(surface)} m²</div>`;
-  }
+  function renderEstimate() {}
 
   /* -- photos -- */
   const uploadInput = overlay.querySelector('[data-dov-upload-input]');
