@@ -5,20 +5,6 @@ import { PRICES, AIDS, SURFACE } from './pricing.js';
 
 /* ---------- shared fragments ---------- */
 
-function ctaBand(ctx, { title, body }) {
-  const { t, url } = ctx;
-  return `<section class="cta-band" data-reveal>
-  <div class="wrap cta-band__inner">
-    <h2 class="h-display">${title}</h2>
-    <p class="cta-band__body">${body}</p>
-    <div class="cta-band__actions">
-      <a class="btn btn--primary" href="${url('devis')}" data-magnetic>${t.common.ctaDevis}</a>
-      <a class="btn btn--ghost" href="tel:${t.contact.phoneHref}" data-magnetic>${icon('phone')}<span>${t.common.ctaCall}</span></a>
-    </div>
-  </div>
-</section>`;
-}
-
 function baSlider(ctx, item, { eager = false, ratio = [1400, 940] } = {}) {
   const { t } = ctx;
   const [w, h] = ratio;
@@ -298,8 +284,8 @@ function homePage(ctx) {
     </aside>
   </div>
 </section>
+`;
 
-${ctaBand(ctx, h.finalCta)}`;
 }
 
 /* ---------- devis ---------- */

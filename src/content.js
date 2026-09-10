@@ -242,10 +242,6 @@ export const content = {
         imgAlt: 'La Trouée de Belfort au coucher du soleil, entre Vosges et Jura',
         towns: ['Belfort', 'Danjoutin', 'Valdoie', 'Offemont', 'Essert', 'Bavilliers', 'Andelnans', 'Chèvremont', 'Montbéliard', 'Héricourt', 'Delle', 'Giromagny'],
       },
-      finalCta: {
-        title: 'Un projet ? Parlons-en <em>autour d’un plan</em>.',
-        body: 'Première visite technique gratuite, devis détaillé sous 48 h. Et si notre réponse est non, on vous dira pourquoi.',
-      },
     },
 
     prestations: {
@@ -917,10 +913,6 @@ export const content = {
         img: 'photo-1500382017468-9049fed747ef',
         imgAlt: 'The Belfort Gap at sunset, between the Vosges and the Jura',
         towns: ['Belfort', 'Danjoutin', 'Valdoie', 'Offemont', 'Essert', 'Bavilliers', 'Andelnans', 'Chèvremont', 'Montbéliard', 'Héricourt', 'Delle', 'Giromagny'],
-      },
-      finalCta: {
-        title: 'A project? Let’s talk <em>over a plan</em>.',
-        body: 'Free first technical visit, detailed quote within 48 hours. And if our answer is no, we will tell you why.',
       },
     },
 
