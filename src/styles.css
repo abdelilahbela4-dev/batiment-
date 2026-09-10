@@ -2178,7 +2178,7 @@ html.js .h-display.is-in em, html.js .h-display-sm.is-in em {
 }
 
 @media (max-width: 860px) {
-  :root { --header-h: 60px; --sp-7: 72px; --sp-8: 110px; }
+  :root { --header-h: 60px; --sp-6: 40px; --sp-7: 56px; --sp-8: 80px; }
   .site-nav, .site-header__actions .btn { display: none; }
   .nav-toggle { display: inline-flex; }
   .site-header__inner { gap: var(--sp-3); }
@@ -2313,23 +2313,105 @@ html.js .h-display.is-in em, html.js .h-display-sm.is-in em {
   .filters::-webkit-scrollbar { display: none; }
   .filter-btn { flex: none; }
 
-  /* --- project cards mobile --- */
-  .project__body { max-width: 100%; overflow-wrap: break-word; }
+  /* --- realisations section mobile --- */
+  .realisations-section .section-head h2 {
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+  }
+  .realisations-section .section-head p {
+    font-size: var(--type-sm);
+  }
+  .projects { padding-block: var(--sp-2) var(--sp-5); }
+  .project {
+    padding: var(--sp-4) var(--gutter);
+    gap: var(--sp-3);
+  }
+  .project__content { max-width: 100%; overflow-wrap: break-word; }
+  .project__content h2 { font-size: var(--type-lg); }
+  .project__content > p {
+    font-size: var(--type-sm);
+    line-height: 1.5;
+    margin-top: var(--sp-2);
+  }
+  .project__meta {
+    gap: var(--sp-2) var(--sp-3);
+    margin-top: var(--sp-3);
+    padding-block: var(--sp-2);
+  }
 
-  /* --- story / about section --- */
+  /* --- reviews marquee mobile --- */
+  .reviews-marquee .review {
+    flex: 0 0 260px;
+    padding: var(--sp-3);
+    border-radius: 12px;
+  }
+  .reviews-marquee .review blockquote p {
+    font-size: var(--type-sm);
+    line-height: 1.35;
+  }
+  .reviews-marquee .review footer span {
+    font-size: 0.62rem;
+  }
+  .reviews-marquee::before,
+  .reviews-marquee::after { width: 24px; }
+  .reviews-header { margin-bottom: var(--sp-3); }
+  .reviews-header h2 { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+  .reviews-header p { font-size: var(--type-sm); margin-top: var(--sp-2); }
+  .reviews-section { padding-block: var(--sp-5) !important; }
+
+  /* --- story / about section mobile --- */
   .story__text { max-width: 100%; overflow-wrap: break-word; }
+  .story__title {
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+    margin-bottom: var(--sp-3);
+  }
+  .story__body {
+    font-size: var(--type-sm);
+    line-height: 1.6;
+    gap: var(--sp-2);
+  }
+  .story__body p:first-child {
+    font-size: var(--type-md);
+    color: var(--papier);
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .values__list { margin-top: var(--sp-3); }
+  .value { padding: var(--sp-3) 0; }
+  .value h3 { font-size: var(--type-md); }
 
-  .stats-band .wrap { padding-block: var(--sp-5); }
-  .stats { grid-template-columns: 1fr 1fr; column-gap: var(--sp-3); row-gap: var(--sp-4); }
-  .stats .stat:first-child { grid-column: 1 / -1; grid-row: auto; }
-  .stat:first-child .stat__value { font-size: clamp(3rem, 12vw, 4.6rem); }
-  .site-footer__inner { grid-template-columns: 1fr; }
-  .site-footer__brand p { max-width: 100%; }
+  /* --- stats band mobile --- */
+  .stats-band .wrap { padding-block: var(--sp-4); }
+  .stats {
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--sp-3);
+    row-gap: var(--sp-3);
+    text-align: center;
+  }
+  .stats .stat:first-child { grid-column: 1 / -1; grid-row: auto; text-align: center; }
+  .stat:first-child .stat__value { font-size: clamp(2.6rem, 10vw, 4rem); }
+  .stat__value { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+  .stat:not(:first-child) { padding-top: var(--sp-2); }
+
+  /* --- contact section mobile --- */
+  .contact__grid { gap: var(--sp-4); }
+  .contact-card { padding: var(--sp-4); }
+  .contact-card__devis { padding-top: var(--sp-3); }
+  .contact-card__img { margin-top: var(--sp-2); }
+  .contact-form textarea { min-height: 120px; }
+  #contact.section { padding-block: var(--sp-5); }
+
+  /* --- footer mobile --- */
+  .site-footer { padding-block: var(--sp-5) var(--sp-4); }
+  .site-footer__inner {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+  .site-footer__brand p { max-width: 100%; font-size: var(--type-xs); }
   .site-footer__hours { font-size: 0.72rem; gap: 4px var(--sp-2); }
+  .site-footer__col h2 { font-size: var(--type-xs); margin-bottom: var(--sp-2); }
+  .site-footer__col ul { gap: var(--sp-1); }
+  .site-footer__base { padding-top: var(--sp-3); }
   .featured__small { grid-template-rows: none; grid-template-columns: 1fr 1fr; }
-  .cta-band__actions { flex-direction: column; align-items: stretch; }
-  .cta-band__actions .btn { justify-content: center; }
-  .cta-band h2 { font-size: clamp(1.6rem, 6vw, 2.4rem); max-width: 100%; overflow-wrap: break-word; }
 
   /* --- action bar: compact and properly sized --- */
   .action-bar .btn { padding-block: var(--sp-3); font-size: var(--type-sm); }

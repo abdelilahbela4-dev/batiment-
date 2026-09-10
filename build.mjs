@@ -27,8 +27,8 @@ const SUPABASE_URL = process.env.SUPABASE_URL || env.SUPABASE_URL || '__SUPABASE
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '__SUPABASE_ANON_KEY__';
 
 export const PAGES = [
-  { key: 'home',  slug: { fr: '',      en: '' } },
-  { key: 'devis', slug: { fr: 'devis', en: 'quote' } },
+  { key: 'home',  slug: { fr: '' } },
+  { key: 'devis', slug: { fr: 'devis' } },
 ];
 
 export function urlFor(lang, key) {
@@ -44,7 +44,7 @@ async function build() {
   for (const lang of LANGS) {
     const t = content[lang];
     for (const page of PAGES) {
-      const ctx = { lang, t, page: page.key, url: (key) => urlFor(lang, key), urlOther: urlFor(lang === 'fr' ? 'en' : 'fr', page.key), otherLang: lang === 'fr' ? 'en' : 'fr' };
+      const ctx = { lang, t, page: page.key, url: (key) => urlFor(lang, key) };
       let html = renderPage(page.key, ctx);
       html = html.replace(/__SUPABASE_URL__/g, SUPABASE_URL);
       html = html.replace(/__SUPABASE_ANON_KEY__/g, SUPABASE_ANON_KEY);

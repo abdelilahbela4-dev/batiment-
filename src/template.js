@@ -126,7 +126,6 @@ function header(ctx) {
       <ul>${navItems}</ul>
     </nav>
     <div class="site-header__actions">
-      <a class="lang-switch" href="${urlOther}" hreflang="${ctx.otherLang}" lang="${ctx.otherLang}" aria-label="${t.langSwitchLabel}">${ctx.otherLang.toUpperCase()}</a>
       <a class="btn btn--primary btn--sm" href="${url('devis')}" data-magnetic>${t.navCta}</a>
       <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="${t.navOpen}" data-nav-toggle>
         ${icons.menu}
@@ -140,7 +139,6 @@ function header(ctx) {
     <div class="mobile-nav__footer">
       <a class="btn btn--primary" href="${url('devis')}">${t.navCta}</a>
       <a class="mobile-nav__call" href="tel:${t.contact.phoneHref}">${icons.phone}<span>${t.contact.phoneDisplay}</span></a>
-      <a class="mobile-nav__lang" href="${urlOther}" hreflang="${ctx.otherLang}" lang="${ctx.otherLang}">${t.langSwitchLabel}</a>
     </div>
   </div>
 </header>
