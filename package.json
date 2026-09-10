@@ -1,0 +1,15 @@
+{
+  "name": "destpec-batiment",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Site vitrine bilingue (FR/EN) pour DESTPEC Bâtiment, construction et rénovation à Étampes.",
+  "scripts": {
+    "build": "node build.mjs",
+    "serve": "node serve.mjs",
+    "shots": "node shots.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^23.11.1"
+  }
+}
