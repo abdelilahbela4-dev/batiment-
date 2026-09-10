@@ -2,6 +2,22 @@
   "outputDirectory": "dist",
   "buildCommand": "npm run build",
   "routes": [
+    {
+      "src": "/admin/(.*)",
+      "dest": "https://admin-rho-one-33.vercel.app/admin/$1"
+    },
+    {
+      "src": "/admin",
+      "dest": "https://admin-rho-one-33.vercel.app/admin"
+    },
+    {
+      "src": "/_next/(.*)",
+      "dest": "https://admin-rho-one-33.vercel.app/_next/$1"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "https://admin-rho-one-33.vercel.app/api/$1"
+    },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
