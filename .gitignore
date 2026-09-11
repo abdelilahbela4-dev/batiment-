@@ -5,3 +5,6 @@ shots/
 video_home_page/
 
 .vercel
+
+# Admin app lives in its own repository (github.com/abdelilahbela4-dev/admin_batiment)
+admin/
