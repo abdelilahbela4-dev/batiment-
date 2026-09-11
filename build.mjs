@@ -69,7 +69,7 @@ async function build() {
   // Root redirect to /fr/
   await writeFile(
     join(dist, 'index.html'),
-    `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/fr/"><link rel="canonical" href="/fr/"><title>DESTPEC Bâtiment</title></head><body><a href="/fr/">DESTPEC Bâtiment</a></body></html>`,
+    `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/fr/"><link rel="canonical" href="/fr/"><title>AM Construction</title></head><body><a href="/fr/">AM Construction</a></body></html>`,
     'utf8'
   );
 

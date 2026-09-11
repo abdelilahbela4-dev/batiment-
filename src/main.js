@@ -1,4 +1,4 @@
-// DESTPEC Bâtiment — progressive enhancement.
+// AM Construction — progressive enhancement.
 // Everything degrades gracefully: content is visible and usable without JS,
 // and every motion respects prefers-reduced-motion.
 
@@ -13,31 +13,6 @@ const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
 document.querySelectorAll('[data-year]').forEach((el) => {
   el.textContent = new Date().getFullYear();
 });
-
-/* ---------- mobile nav ---------- */
-(() => {
-  const toggle = document.querySelector('[data-nav-toggle]');
-  const panel = document.querySelector('[data-mobile-nav]');
-  if (!toggle || !panel) return;
-  const labelOpen = toggle.getAttribute('aria-label');
-  const labelClose = toggle.dataset.labelClose || labelOpen;
-
-  const setOpen = (open) => {
-    toggle.setAttribute('aria-expanded', String(open));
-    panel.hidden = !open;
-    document.body.style.overflow = open ? 'hidden' : '';
-  };
-  toggle.addEventListener('click', () => setOpen(panel.hidden));
-  panel.addEventListener('click', (e) => {
-    if (e.target.closest('a')) setOpen(false);
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !panel.hidden) {
-      setOpen(false);
-      toggle.focus();
-    }
-  });
-})();
 
 /* ---------- smooth anchor scroll ---------- */
 (() => {
@@ -82,65 +57,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   sweep();
 })();
 
-/* ---------- count-up stats ---------- */
-(() => {
-  const els = document.querySelectorAll('[data-count]');
-  if (!els.length || !hasIO || reducedMotion) return;
-  const fmt = new Intl.NumberFormat(document.documentElement.lang || 'fr');
-  const animate = (el) => {
-    const target = parseInt(el.dataset.count, 10);
-    const dur = 1500;
-    const t0 = performance.now();
-    const tick = (now) => {
-      const p = clamp((now - t0) / dur, 0, 1);
-      const eased = 1 - Math.pow(1 - p, 4);
-      el.textContent = fmt.format(Math.round(target * eased));
-      if (p < 1) requestAnimationFrame(tick);
-      else el.textContent = fmt.format(target);
-    };
-    requestAnimationFrame(tick);
-  };
-  const io = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((en) => {
-        if (en.isIntersecting) {
-          animate(en.target);
-          io.unobserve(en.target);
-        }
-      });
-    },
-    { threshold: 0.4 }
-  );
-  els.forEach((el) => io.observe(el));
-})();
-
-/* ---------- hero / page-head parallax ---------- */
-(() => {
-  if (reducedMotion) return;
-  const media = [...document.querySelectorAll('[data-parallax]')];
-  if (!media.length) return;
-  let ticking = false;
-  const update = () => {
-    ticking = false;
-    const vh = window.innerHeight;
-    media.forEach((el) => {
-      const rect = el.parentElement.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > vh) return;
-      const progress = clamp((vh - rect.top) / (vh + rect.height), 0, 1);
-      el.style.transform = `translateY(${((progress - 0.5) * 9).toFixed(2)}%)`;
-    });
-  };
-  const onScroll = () => {
-    if (!ticking) {
-      ticking = true;
-      requestAnimationFrame(update);
-    }
-  };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
-  update();
-})();
-
 /* ---------- scroll-scrubbed frame sequence ---------- */
 /* Cinematic camera orbit — a house morphing from worn to fully renovated —
    scrubbed through a <canvas> as the reader scrolls. The <img> still underneath
@@ -153,6 +69,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const canvas = stage.querySelector('[data-seq-canvas]');
   const still = stage.querySelector('.stage__still');
   const cue = stage.querySelector('[data-seq-cue]');
+  const viewport = stage.querySelector('.stage__viewport');
   const count = parseInt(stage.dataset.seqFrames, 10) || 80;
 
   // Reduced motion, or no canvas support: leave the static final-renovated
@@ -215,11 +132,14 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     const rect = stage.getBoundingClientRect();
     const scrollable = rect.height - window.innerHeight;
     scrollTarget = scrollable > 0 ? clamp(-rect.top / scrollable, 0, 1) : 0;
+    // Last tenth of the film: the frame folds into a print on the lime-render page.
+    const fold = clamp((scrollTarget - 0.9) / 0.1, 0, 1);
+    viewport.style.setProperty('--fold', `${((1 - Math.pow(1 - fold, 3)) * Math.min(window.innerWidth * 0.035, 56)).toFixed(1)}px`);
   };
 
-  // Heavy dampening so the sequence always progresses slowly and cinematically,
-  // even during a fast scroll/swipe.
-  const ease = mobile ? 0.04 : 0.03;
+  // Damped enough to stay cinematic, tight enough that the house settles about
+  // 1.5 s after the finger stops (0.03 left it drifting for ~4 s).
+  const ease = mobile ? 0.09 : 0.08;
 
   const step = () => {
     scrollEased += (scrollTarget - scrollEased) * ease;
@@ -282,102 +202,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   });
 })();
 
-/* ---------- home live price ---------- */
-/* The same tables the quote page uses, answered before anyone has to call.
-   Server-rendered markup stays meaningful without JS; this only fills figures. */
-(() => {
-  const root = document.querySelector('[data-price]');
-  if (!root) return;
-  const cfgEl = document.querySelector('[data-price-config]');
-  if (!cfgEl) return;
-  const CFG = JSON.parse(cfgEl.textContent);
-  const lang = CFG.lang || 'fr';
-  const eur = new Intl.NumberFormat(lang === 'fr' ? 'fr-FR' : 'en-GB', {
-    style: 'currency', currency: 'EUR', maximumFractionDigits: 0,
-  });
-  const num = new Intl.NumberFormat(lang === 'fr' ? 'fr-FR' : 'en-GB');
-
-  const range = root.querySelector('[data-price-range-input]');
-  const out = {
-    surface: root.querySelector('[data-price-surface]'),
-    figure: root.querySelector('[data-price-figure]'),
-    perm2: root.querySelector('[data-price-perm2]'),
-    aids: root.querySelector('[data-price-aids]'),
-    aidsLine: root.querySelector('[data-price-aidsline]'),
-    net: root.querySelector('[data-price-net]'),
-    netLine: root.querySelector('[data-price-netline]'),
-    min: root.querySelector('[data-price-min]'),
-    max: root.querySelector('[data-price-max]'),
-    aidsField: root.querySelector('[data-price-aids-field]'),
-  };
-
-  const typeOf = () => (root.querySelector('input[name="ptype"]:checked') || {}).value || 'renovation';
-  const bracketOf = () => (root.querySelector('input[name="pbracket"]:checked') || {}).value || 'jaune';
-
-  // Each project type gets its own sensible surface window.
-  function applyBounds(type, keepValue) {
-    const s = CFG.surface[type];
-    if (!s) return;
-    const previous = Number(range.value);
-    range.min = s.min; range.max = s.max; range.step = s.step;
-    range.value = keepValue ? clamp(previous, s.min, s.max) : s.start;
-    if (out.min) out.min.textContent = num.format(s.min);
-    if (out.max) out.max.textContent = `${num.format(s.max)} m²`;
-  }
-
-  function compute() {
-    const type = typeOf();
-    const surface = Number(range.value);
-    const P = CFG.prices[type];
-    const low = P.low * surface;
-    const high = P.high * surface;
-
-    // Energy grants apply to insulation, and to renovation as an energy retrofit.
-    const eligible = type === 'isolation' || type === 'renovation';
-    let aidTotal = 0;
-    if (eligible) {
-      const b = bracketOf();
-      if (type === 'isolation') {
-        aidTotal = (CFG.aids.isolationPerM2[b] || 0) * surface + CFG.aids.isolationCeePerM2 * surface;
-      } else {
-        const mid = (low + high) / 2;
-        const mpr = b === 'rose' ? 0 : Math.min((CFG.aids.renoPct[b] || 0) * mid, CFG.aids.renoCap);
-        aidTotal = mpr + (CFG.aids.renoCee[b] || 0);
-      }
-    }
-
-    out.surface.textContent = num.format(surface);
-    out.figure.textContent = `${eur.format(low)} – ${eur.format(high)}`;
-    out.perm2.textContent = `${num.format(P.low)} – ${num.format(P.high)} €/m²`;
-
-    if (out.aidsField) out.aidsField.hidden = !eligible;
-    if (eligible && aidTotal > 0) {
-      out.aidsLine.hidden = false;
-      out.netLine.hidden = false;
-      out.aids.textContent = `− ${eur.format(aidTotal)}`;
-      out.net.textContent = `${eur.format(Math.max(low - aidTotal, 0))} – ${eur.format(Math.max(high - aidTotal, 0))}`;
-    } else {
-      out.aidsLine.hidden = true;
-      out.netLine.hidden = true;
-    }
-  }
-
-  root.addEventListener('input', (e) => {
-    if (e.target === range) compute();
-  });
-  root.addEventListener('change', (e) => {
-    if (e.target.name === 'ptype') {
-      applyBounds(typeOf(), false);
-      compute();
-    } else if (e.target.name === 'pbracket') {
-      compute();
-    }
-  });
-
-  applyBounds(typeOf(), false);
-  compute();
-})();
-
 /* ---------- mobile action bar ---------- */
 (() => {
   const bar = document.querySelector('[data-action-bar]');
@@ -392,141 +216,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   // Slides in once the first screen is behind the user, so it never covers the hero CTAs.
   const io = new IntersectionObserver(([entry]) => bar.classList.toggle('is-in', !entry.isIntersecting));
   io.observe(sentinel);
-})();
-
-/* ---------- magnetic buttons ---------- */
-(() => {
-  if (reducedMotion || !finePointer) return;
-  document.querySelectorAll('[data-magnetic]').forEach((el) => {
-    const strength = 6;
-    el.addEventListener('mousemove', (e) => {
-      const r = el.getBoundingClientRect();
-      const x = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      const y = ((e.clientY - r.top) / r.height - 0.5) * 2;
-      el.style.transform = `translate(${(x * strength).toFixed(1)}px, ${(y * strength).toFixed(1)}px)`;
-    });
-    el.addEventListener('mouseleave', () => {
-      el.style.transform = '';
-    });
-  });
-})();
-
-/* ---------- card tilt ---------- */
-(() => {
-  if (reducedMotion || !finePointer) return;
-  document.querySelectorAll('[data-tilt]').forEach((el) => {
-    el.addEventListener('mousemove', (e) => {
-      const r = el.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width - 0.5;
-      const y = (e.clientY - r.top) / r.height - 0.5;
-      el.style.transform = `perspective(800px) rotateX(${(-y * 4).toFixed(2)}deg) rotateY(${(x * 4).toFixed(2)}deg)`;
-    });
-    el.addEventListener('mouseleave', () => {
-      el.style.transform = '';
-    });
-  });
-})();
-
-/* ---------- before/after sliders ---------- */
-(() => {
-  document.querySelectorAll('[data-ba]').forEach((ba) => {
-    const range = ba.querySelector('.ba__range');
-    if (!range) return;
-    const set = (v) => ba.style.setProperty('--pos', `${clamp(v, 0, 100)}%`);
-    range.addEventListener('input', () => set(parseFloat(range.value)));
-    set(parseFloat(range.value));
-  });
-})();
-
-/* ---------- build sequence scrub ---------- */
-(() => {
-  const section = document.querySelector('[data-build-section]');
-  if (!section) return;
-  const svg = section.querySelector('[data-build-house]');
-  const stages = [...section.querySelectorAll('.bh-stage')];
-  const items = [...section.querySelectorAll('.build-list__item')];
-  if (!svg || !stages.length || !items.length) return;
-
-  if (reducedMotion) {
-    items.forEach((it) => it.classList.add('is-active'));
-    return;
-  }
-
-  // Prepare draw-on strokes
-  const drawables = stages.map((stage) =>
-    [...stage.querySelectorAll('.bh-draw')].map((p) => {
-      const len = p.getTotalLength();
-      p.style.strokeDasharray = `${len}`;
-      p.style.strokeDashoffset = `${len}`;
-      return { p, len };
-    })
-  );
-  const fills = stages.map((stage) => [...stage.querySelectorAll('.bh-fill, .bh-glow')]);
-  fills.flat().forEach((f) => (f.style.opacity = '0'));
-
-  let ticking = false;
-  const update = () => {
-    ticking = false;
-    const list = section.querySelector('.build-list');
-    const rect = list.getBoundingClientRect();
-    const vh = window.innerHeight;
-    // progress 0..1 while the list scrolls through the viewport middle band
-    const total = rect.height - vh * 0.45;
-    const done = clamp(vh * 0.55 - rect.top, 0, total);
-    const progress = total > 0 ? done / total : 1;
-
-    const n = stages.length;
-    let activeIdx = 0;
-    stages.forEach((stage, i) => {
-      const local = clamp(progress * n - i, 0, 1);
-      if (progress * n >= i) activeIdx = i;
-      drawables[i].forEach(({ p, len }) => {
-        p.style.strokeDashoffset = `${len * (1 - local)}`;
-      });
-      fills[i].forEach((f) => (f.style.opacity = local.toFixed(3)));
-    });
-    items.forEach((it, i) => it.classList.toggle('is-active', i === activeIdx));
-  };
-  const onScroll = () => {
-    if (!ticking) {
-      ticking = true;
-      requestAnimationFrame(update);
-    }
-  };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
-  update();
-})();
-
-/* ---------- réalisations filters ---------- */
-(() => {
-  const bar = document.querySelector('[data-filters]');
-  const projects = [...document.querySelectorAll('[data-project]')];
-  if (!bar || !projects.length) return;
-  bar.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-filter]');
-    if (!btn) return;
-    const key = btn.dataset.filter;
-    bar.querySelectorAll('[data-filter]').forEach((b) => {
-      const active = b === btn;
-      b.classList.toggle('is-active', active);
-      b.setAttribute('aria-pressed', String(active));
-    });
-    let shown = 0;
-    projects.forEach((p) => {
-      const hide = key !== 'all' && p.dataset.cat !== key;
-      p.classList.toggle('is-hidden', hide);
-      if (!hide) shown++;
-    });
-    const empty = document.querySelector('[data-projects-empty]');
-    if (empty) empty.hidden = shown > 0;
-    // Filtering silently changed the page before; say what happened.
-    const status = document.querySelector('[data-filter-status]');
-    if (status) {
-      const noun = shown === 1 ? status.dataset.nounOne : status.dataset.noun;
-      status.textContent = `${shown} ${noun} · ${btn.textContent.trim()}`;
-    }
-  });
 })();
 
 /* ---------- devis flow ---------- */
@@ -917,98 +606,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   showStep(0);
 })();
 
-/* ---------- contact form ---------- */
-(() => {
-  const form = document.querySelector('[data-contact-form]');
-  if (!form) return;
-  const sent = document.querySelector('[data-contact-sent]');
-  const errors = {
-    name: form.dataset.errName,
-    email: form.dataset.errEmail,
-    message: form.dataset.errMessage,
-  };
-  const setErr = (field, msg) => {
-    const err = form.querySelector(`[data-error-for="${field}"]`);
-    if (!err) return;
-    err.textContent = msg || '';
-    err.hidden = !msg;
-    err.closest('.form-field').classList.toggle('has-error', Boolean(msg));
-  };
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    let ok = true;
-    const name = form.elements.name.value.trim();
-    const email = form.elements.email.value.trim();
-    const message = form.elements.message.value.trim();
-    if (!name) { setErr('name', errors.name); ok = false; } else setErr('name', '');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { setErr('email', errors.email); ok = false; } else setErr('email', '');
-    if (message.length < 10) { setErr('message', errors.message); ok = false; } else setErr('message', '');
-    if (!ok) return;
-    form.hidden = true;
-    sent.hidden = false;
-    sent.focus();
-  });
-})();
-
-/* ---------- cursor glow ---------- */
-(() => {
-  if (reducedMotion || !finePointer) return;
-  const glow = document.createElement('div');
-  glow.className = 'cursor-glow';
-  document.body.appendChild(glow);
-  let x = 0, y = 0, cx = 0, cy = 0, raf = 0;
-  const step = () => {
-    cx += (x - cx) * 0.12;
-    cy += (y - cy) * 0.12;
-    glow.style.transform = `translate(${cx - 200}px, ${cy - 200}px)`;
-    if (Math.abs(x - cx) > 0.5 || Math.abs(y - cy) > 0.5) raf = requestAnimationFrame(step);
-    else raf = 0;
-  };
-  document.addEventListener('mousemove', (e) => {
-    x = e.clientX; y = e.clientY;
-    if (!raf) raf = requestAnimationFrame(step);
-  });
-})();
-
-/* ---------- header hide on scroll down, show on up ---------- */
-(() => {
-  const header = document.querySelector('.site-header');
-  if (!header) return;
-  const stage = document.querySelector('[data-seq-stage]');
-  let lastY = 0;
-  let ticking = false;
-  const update = () => {
-    ticking = false;
-    const y = window.scrollY;
-    // Keep navbar visible through the entire hero/stage section
-    const stageEnd = stage ? stage.offsetTop + stage.offsetHeight : 0;
-    if (y > stageEnd && y > lastY) header.classList.add('is-hidden');
-    else header.classList.remove('is-hidden');
-    lastY = y;
-  };
-  window.addEventListener('scroll', () => {
-    if (!ticking) { ticking = true; requestAnimationFrame(update); }
-  }, { passive: true });
-})();
-
-/* ---------- active nav highlight ---------- */
-(() => {
-  const sections = document.querySelectorAll('section[id]');
-  const navLinks = document.querySelectorAll('.site-nav a, .mobile-nav a');
-  if (!sections.length || !navLinks.length) return;
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((en) => {
-      if (en.isIntersecting) {
-        const id = en.target.id;
-        navLinks.forEach((a) => {
-          a.classList.toggle('is-active', a.getAttribute('href') === `#${id}`);
-        });
-      }
-    });
-  }, { rootMargin: '-30% 0px -60% 0px' });
-  sections.forEach((s) => io.observe(s));
-})();
-
 /* ---------- devis overlay ---------- */
 (() => {
   const overlay = document.querySelector('[data-dov]');
@@ -1300,4 +897,220 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   });
 
   showStep(0);
+})();
+
+/* ---------- navigation: transparent over the film, solid after ---------- */
+(() => {
+  const nav = document.querySelector('[data-nav]');
+  if (!nav) return;
+  const overlay = nav.hasAttribute('data-nav-overlay');
+  const stage = document.querySelector('[data-seq-stage]');
+  const links = [...nav.querySelectorAll('.bar__links a')];
+  const targets = links.map((a) => {
+    const id = (a.getAttribute('href') || '').split('#')[1];
+    return id ? document.getElementById(id) : null;
+  });
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const vh = window.innerHeight;
+    if (overlay) {
+      const pastFilm = !stage || stage.getBoundingClientRect().bottom <= nav.offsetHeight + 1;
+      nav.classList.toggle('is-solid', pastFilm);
+    }
+    // The last section whose top has crossed 40 % of the viewport is the active one.
+    let active = -1;
+    targets.forEach((el, i) => {
+      if (el && el.getBoundingClientRect().top < vh * 0.4) active = i;
+    });
+    links.forEach((a, i) => a.classList.toggle('is-active', i === active));
+  };
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+    // rAF is suspended in hidden tabs and some embedded renderers: never leave the page stale.
+    setTimeout(() => {
+      if (ticking) update();
+    }, 120);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  update();
+})();
+
+/* ---------- mobile menu: full screen, outside the header ---------- */
+(() => {
+  const menu = document.querySelector('[data-menu]');
+  const openBtn = document.querySelector('[data-menu-open]');
+  if (!menu || !openBtn) return;
+  const closeBtn = menu.querySelector('[data-menu-close]');
+  const setOpen = (open) => {
+    menu.hidden = !open;
+    openBtn.setAttribute('aria-expanded', String(open));
+    document.body.style.overflow = open ? 'hidden' : '';
+    if (open) {
+      requestAnimationFrame(() => menu.classList.add('is-open'));
+      closeBtn.focus();
+    } else {
+      menu.classList.remove('is-open');
+    }
+  };
+  openBtn.addEventListener('click', () => setOpen(true));
+  closeBtn.addEventListener('click', () => {
+    setOpen(false);
+    openBtn.focus();
+  });
+  menu.addEventListener('click', (e) => {
+    if (e.target.closest('a')) setOpen(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !menu.hidden) {
+      setOpen(false);
+      openBtn.focus();
+    }
+  });
+})();
+
+/* ---------- scroll craft: windows, manifesto, plan to house, method, portrait ---------- */
+/* Every effect is scrubbed by scroll position and plays once in each direction:
+   no timers, no loops. Resting states stay readable without JavaScript. */
+(() => {
+  const wins = [...document.querySelectorAll('[data-window]')];
+  const lines = [...document.querySelectorAll('[data-line]')];
+  const portrait = document.querySelector('[data-portrait]');
+  const method = document.querySelector('[data-method]');
+  const methodSteps = method ? [...method.querySelectorAll('[data-step]')] : [];
+  const plan = document.querySelector('[data-draw-section]');
+  if (!wins.length && !lines.length && !portrait && !method && !plan) return;
+  const out3 = (p) => 1 - Math.pow(1 - p, 3);
+
+  let strokes = [];
+  let hatch = null;
+  let photo = null;
+  let beam = null;
+  let services = [];
+  let list = null;
+  if (plan) {
+    hatch = plan.querySelector('[data-hatch]');
+    if (hatch) {
+      // Vertical larch cladding on the garage volume and the two timber panels.
+      const NS = 'http://www.w3.org/2000/svg';
+      const addLine = (x, y1, y2) => {
+        const l = document.createElementNS(NS, 'line');
+        l.setAttribute('x1', x);
+        l.setAttribute('x2', x);
+        l.setAttribute('y1', y1);
+        l.setAttribute('y2', y2);
+        hatch.appendChild(l);
+      };
+      for (let x = 563; x < 842; x += 9) {
+        const overDoor = (x > 585 && x < 609) || (x > 680 && x < 804);
+        addLine(x, 254, overDoor ? 321 : 439);
+      }
+      for (let x = 176; x < 246; x += 8) addLine(x, 313, 363);
+      for (let x = 341; x < 405; x += 8) addLine(x, 313, 363);
+    }
+    strokes = [...plan.querySelectorAll('.ln')];
+    photo = plan.querySelector('[data-draw-photo]');
+    beam = plan.querySelector('[data-draw-beam]');
+    services = [...plan.querySelectorAll('[data-service]')];
+    list = plan.querySelector('[data-draw-list]');
+  }
+
+  if (reducedMotion) {
+    methodSteps.forEach((s) => s.classList.add('is-reached'));
+    services.forEach((s) => s.classList.add('is-current'));
+    if (photo) photo.style.setProperty('--w', '50%');
+    return;
+  }
+  document.documentElement.classList.add('is-scroll-craft');
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const vh = window.innerHeight;
+
+    // Photographs open like a window: a vertical slit widening to the full frame.
+    wins.forEach((w) => {
+      const r = w.getBoundingClientRect();
+      const p = out3(clamp((vh - r.top) / (vh * 0.75), 0, 1));
+      w.style.setProperty('--side', `${((1 - p) * 34).toFixed(2)}%`);
+      w.style.setProperty('--z', (1 + (1 - p) * 0.12).toFixed(4));
+    });
+
+    // Manifesto lines light up as they cross the middle of the screen, and stay lit.
+    lines.forEach((l) => {
+      const r = l.getBoundingClientRect();
+      const c = r.top + r.height / 2;
+      const d = c < vh * 0.5 ? 1 : clamp(1 - (c - vh * 0.5) / (vh * 0.4), 0, 1);
+      l.style.setProperty('--lit', (0.2 + 0.8 * d).toFixed(3));
+    });
+
+    if (portrait) {
+      const r = portrait.getBoundingClientRect();
+      const p = out3(clamp((vh - r.top) / (vh * 0.8), 0, 1));
+      portrait.style.setProperty('--rv', `${((1 - p) * 55).toFixed(2)}%`);
+    }
+
+    if (method) {
+      const r = method.getBoundingClientRect();
+      const p = clamp((vh * 0.8 - r.top) / (r.height + vh * 0.2), 0, 1);
+      method.style.setProperty('--p', p.toFixed(3));
+      methodSteps.forEach((s, i) => s.classList.toggle('is-reached', p >= i / methodSteps.length + 0.02));
+    }
+
+    if (plan && list) {
+      const r = list.getBoundingClientRect();
+      const P = clamp((vh * 0.6 - r.top) / Math.max(r.height - vh * 0.3, 1), 0, 1);
+      const n = strokes.length;
+      strokes.forEach((s, i) => {
+        const start = (i / n) * 0.48;
+        s.style.setProperty('--o', (1 - clamp((P - start) / 0.1, 0, 1)).toFixed(3));
+      });
+      if (hatch) hatch.style.opacity = clamp((P - 0.45) / 0.12, 0, 1).toFixed(3);
+      const W = clamp((P - 0.62) / 0.3, 0, 1);
+      if (photo) photo.style.setProperty('--w', `${((1 - W) * 100).toFixed(2)}%`);
+      if (beam) beam.style.setProperty('--beam', W > 0.001 && W < 0.999 ? '1' : '0');
+      const idx = Math.min(services.length - 1, Math.floor(P * services.length));
+      services.forEach((s, i) => s.classList.toggle('is-current', i === idx));
+    }
+  };
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+    // rAF is suspended in hidden tabs and some embedded renderers: never leave the page stale.
+    setTimeout(() => {
+      if (ticking) update();
+    }, 120);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  update();
+})();
+
+/* ---------- reviews: one quote at a time ---------- */
+(() => {
+  const root = document.querySelector('[data-reviews]');
+  if (!root) return;
+  const items = [...root.querySelectorAll('[data-review]')];
+  if (items.length < 2) return;
+  const count = document.querySelector('[data-review-count]');
+  const prev = root.querySelector('[data-review-prev]');
+  const next = root.querySelector('[data-review-next]');
+  const pad = (n) => String(n).padStart(2, '0');
+  let current = 0;
+  const show = (n) => {
+    current = (n + items.length) % items.length;
+    items.forEach((it, k) => {
+      it.hidden = k !== current;
+    });
+    if (count) count.textContent = `${pad(current + 1)} / ${pad(items.length)}`;
+  };
+  prev.hidden = false;
+  next.hidden = false;
+  prev.addEventListener('click', () => show(current - 1));
+  next.addEventListener('click', () => show(current + 1));
+  show(0);
 })();

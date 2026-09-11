@@ -1,25 +1,20 @@
-// DESTPEC Bâtiment — page shell: <head>, header, footer, icon set, image helpers.
+// AM Construction — page shell: <head>, navigation, mobile menu, footer, icon set, image helpers.
 
-// Papier & Plomb type system:
-//   Plus Jakarta Sans — display, geometric premium sans (SaaS-grade clarity)
-//   Public Sans — humanist body sans, USWDS-drawn
-//   Courier Prime — drafting-typewriter numerals for measurements & marks
+// « Lumière du jour » type system:
+//   Newsreader — display serif with a true italic (titles, quotes, key figures)
+//   Archivo — text and interface; its expanded width sets the 12 px title-block labels
 const FONTS_URL =
-  'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,400..700&family=Public+Sans:ital,wght@0,300..700;1,400..600&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap';
+  'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..700&family=Newsreader:ital,opsz,wght@0,6..72,200..600;1,6..72,200..600&display=swap';
 
-export const ph = (id, w, h) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${w}${h ? `&h=${h}` : ''}&q=70`;
+const MEDIA = '/assets/media';
 
-export function img(id, { alt = '', cls = '', w = 1200, h = null, sizes = '100vw', eager = false } = {}) {
-  const widths = [640, 960, 1400, 1800];
-  const srcset = widths
-    .filter((x) => x <= w * 1.5)
-    .map((x) => `${ph(id, x, h ? Math.round((h * x) / w) : null)} ${x}w`)
-    .join(', ');
-  const dims = h ? ` width="${w}" height="${h}"` : '';
-  return `<img src="${ph(id, w, h)}" srcset="${srcset}" sizes="${sizes}" alt="${alt}" class="${cls}"${
+// Local photography, exported at 960 and 1800 px wide (src/media/realisations, src/media/atelier).
+export function pic(folder, name, { alt = '', cls = '', w, h, sizes = '100vw', eager = false } = {}) {
+  const small = `${MEDIA}/${folder}/${name}-960.jpg`;
+  const large = `${MEDIA}/${folder}/${name}-1800.jpg`;
+  return `<img src="${large}" srcset="${small} 960w, ${large} ${Math.min(w, 1800)}w" sizes="${sizes}" alt="${alt}"${cls ? ` class="${cls}"` : ''} width="${w}" height="${h}"${
     eager ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"'
-  }${dims}>`;
+  }>`;
 }
 
 // Inline SVG icon set: 1.5px stroke, round caps (reference mockup DNA).
@@ -62,15 +57,18 @@ export function icon(name, cls = 'icon') {
   return `<span class="${cls}" data-icon="${name}">${svg}</span>`;
 }
 
-const logoImg = `<img src="/assets/media/logo-am.png" alt="AM Construction" class="logo-mark" width="120" height="68">`;
+// Flat monogram: one roof stroke over AM, CONSTRUCTION spaced out beside it.
+export function wordmark() {
+  return `<span class="wm"><span class="wm__mark"><svg viewBox="0 0 64 18" aria-hidden="true"><path d="M2 17 L32 2 L62 17"/></svg><span class="wm__am">AM</span></span><span class="wm__rule" aria-hidden="true"></span><span class="wm__name">Construction</span></span>`;
+}
+
+const FAVICON = `data:image/svg+xml,${encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 34"><rect width="34" height="34" fill="#353A3D"/><g fill="none" stroke="#F7F6F3" stroke-width="2"><path d="M5 11 17 4.5 29 11"/><path d="M6 28 11 15 16 28M8 23.5h6"/><path d="M18.5 28V15l4.5 7 4.5-7v13"/></g></svg>'
+)}`;
 
 function head(ctx, title, desc, extra = '') {
-  const { lang, urlOther } = ctx;
-  const canonical = `https://destpec-batiment.fr${ctx.url(ctx.page)}`;
-  const alternate = `https://destpec-batiment.fr${urlOther}`;
-  const favicon = `data:image/svg+xml,${encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 34"><rect width="34" height="34" fill="#A63B22"/><path d="M9 8h9a7 7 0 0 1 7 7v4a7 7 0 0 1-7 7H9V8zM14 13v10h4a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-4z" fill="#E8DFC9" fill-rule="evenodd"/></svg>'
-  )}`;
+  const { lang, t } = ctx;
+  const canonical = `https://amconstruction.vercel.app${ctx.url(ctx.page)}`;
   return `<!doctype html>
 <html lang="${lang}">
 <head>
@@ -79,15 +77,14 @@ function head(ctx, title, desc, extra = '') {
 <title>${title}</title>
 <meta name="description" content="${desc}">
 <link rel="canonical" href="${canonical}">
-<link rel="alternate" hreflang="${lang === 'fr' ? 'en' : 'fr'}" href="${alternate}">
-<link rel="alternate" hreflang="x-default" href="https://destpec-batiment.fr/fr/">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="${t.siteName}">
 <meta property="og:title" content="${title}">
 <meta property="og:description" content="${desc}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:locale" content="${lang === 'fr' ? 'fr_FR' : 'en_GB'}">
-<meta name="theme-color" content="#0A0C10">
-<link rel="icon" href="${favicon}">
+<meta property="og:locale" content="fr_FR">
+<meta name="theme-color" content="#EDEBE6">
+<link rel="icon" href="${FAVICON}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="${FONTS_URL}">
@@ -96,51 +93,47 @@ ${extra}
 </head>`;
 }
 
-function navHref(n, url, isHome) {
-  if (n.key === 'home') return url('home');
-  if (n.key === 'devis') return url('devis');
-  const anchor = n.key === 'apropos' ? 'apropos' : n.key;
-  return isHome ? `#${anchor}` : `${url('home')}#${anchor}`;
+function navHref(key, url, isHome) {
+  return isHome ? `#${key}` : `${url('home')}#${key}`;
 }
 
 function header(ctx) {
-  const { t, page, url, urlOther } = ctx;
+  const { t, page, url } = ctx;
   const isHome = page === 'home';
-  const navItems = t.nav
-    .map(
-      (n) =>
-        `<li><a href="${navHref(n, url, isHome)}"${n.key === page ? ' aria-current="page"' : ''}>${n.label}</a></li>`
-    )
+  const links = t.nav
+    .map((n) => `<li><a href="${navHref(n.key, url, isHome)}">${n.label}</a></li>`)
     .join('');
-  return `<a class="skip-link" href="#main">${t.code === 'fr' ? 'Aller au contenu' : 'Skip to content'}</a>
-<header class="site-header" data-header>
-  <div class="site-header__inner">
-    <a class="site-logo" href="${url('home')}" aria-label="AM Construction">
-      ${logoImg}
-    </a>
-    <nav class="site-nav" aria-label="${t.code === 'fr' ? 'Navigation principale' : 'Main navigation'}">
-      <ul>${navItems}</ul>
-    </nav>
-    <div class="site-header__actions">
-      <a class="btn btn--primary btn--sm" href="${url('devis')}" data-magnetic>${t.navCta}</a>
-      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="${t.navOpen}" data-nav-toggle>
-        ${icons.menu}
-      </button>
-    </div>
-  </div>
-  <div class="mobile-nav" id="mobile-nav" hidden data-mobile-nav>
-    <nav aria-label="${t.code === 'fr' ? 'Navigation mobile' : 'Mobile navigation'}">
-      <ul>${navItems}</ul>
-    </nav>
-    <div class="mobile-nav__footer">
-      <a class="btn btn--primary" href="${url('devis')}">${t.navCta}</a>
-      <a class="mobile-nav__call" href="tel:${t.contact.phoneHref}">${icons.phone}<span>${t.contact.phoneDisplay}</span></a>
+  const menuLinks = t.nav
+    .map((n, i) => `<a style="--i:${i}" href="${navHref(n.key, url, isHome)}">${n.label}</a>`)
+    .join('');
+  const homeLabel = `aria-label="${t.siteName}, ${t.common.homeLabel}"`;
+  // On the home page the bar floats transparent over the film and turns solid after it.
+  return `<a class="skip-link" href="#main">${t.common.skip}</a>
+<header class="nav${isHome ? '' : ' is-solid'}" data-nav${isHome ? ' data-nav-overlay' : ''}>
+  <div class="bar">
+    <a class="bar__brand" href="${url('home')}" ${homeLabel}>${wordmark()}</a>
+    <nav class="bar__nav" aria-label="${t.common.mainNav}"><ul class="bar__links">${links}</ul></nav>
+    <div class="bar__end">
+      <a class="bar__tel" href="tel:${t.contact.phoneHref}">${t.contact.phoneDisplay}</a>
+      <a class="btn btn--plein bar__cta" href="${url('devis')}">${t.navCta}</a>
+      <button class="btn bar__menu" type="button" aria-expanded="false" aria-controls="menu" data-menu-open>${t.navOpen}</button>
     </div>
   </div>
 </header>
+<div class="menu" id="menu" role="dialog" aria-modal="true" aria-label="${t.common.mobileNav}" hidden data-menu>
+  <div class="bar">
+    <a class="bar__brand" href="${url('home')}" ${homeLabel}>${wordmark()}</a>
+    <button class="btn" type="button" data-menu-close>${t.navClose}</button>
+  </div>
+  <nav class="menu__links" aria-label="${t.common.mobileNav}">${menuLinks}</nav>
+  <div class="menu__foot">
+    <a class="bar__tel" href="tel:${t.contact.phoneHref}">${t.contact.phoneDisplay}</a>
+    <a class="btn btn--plein btn--lg" href="${url('devis')}">${t.navCta}</a>
+  </div>
+</div>
 <div class="action-bar" data-action-bar hidden>
-  <a class="btn btn--primary action-bar__cta" href="${url('devis')}">${t.navCta}</a>
-  <a class="btn btn--outline action-bar__call" href="tel:${t.contact.phoneHref}" aria-label="${t.common.ctaCall}">${icons.phone}<span>${t.code === 'fr' ? 'Appeler' : 'Call'}</span></a>
+  <a class="btn btn--plein action-bar__cta" href="${url('devis')}">${t.navCta}</a>
+  <a class="btn action-bar__call" href="tel:${t.contact.phoneHref}">${icon('phone')}<span>${t.common.call}</span></a>
 </div>`;
 }
 
@@ -148,41 +141,44 @@ function footer(ctx) {
   const { t, url, page } = ctx;
   const c = t.contact;
   const isHome = page === 'home';
-  const navItems = t.nav
-    .map((n) => `<li><a href="${navHref(n, url, isHome)}">${n.label}</a></li>`)
+  const links = t.nav
+    .map((n) => `<li><a class="lien" href="${navHref(n.key, url, isHome)}">${n.label}</a></li>`)
     .join('');
-  const certs = t.common.certs.map((x) => `<li>${icon('check', 'icon icon--sm')}<span>${x}</span></li>`).join('');
-  const hours = c.hours.map(([d, h]) => `<li><span>${d}</span><span>${h}</span></li>`).join('');
-  return `<footer class="site-footer">
-  <div class="site-footer__inner">
-    <div class="site-footer__brand">
-      <a class="site-logo site-logo--footer" href="${url('home')}" aria-label="AM Construction">
-        ${logoImg}
-      </a>
-      <p>${t.common.footerTagline}</p>
-      <ul class="site-footer__hours">${hours}</ul>
+  const certs = t.common.certs.map((x) => `<li>${x}</li>`).join('');
+  const hours = c.hours.map(([d, h]) => `<li><span>${d}</span><span class="num">${h}</span></li>`).join('');
+  return `<footer class="foot">
+  <div class="wrap">
+    <div class="foot__top">
+      <a class="bar__brand foot__brand" href="${url('home')}" aria-label="${t.siteName}, ${t.common.homeLabel}">${wordmark()}</a>
+      <p class="foot__tagline">${t.common.footerTagline}</p>
     </div>
-    <nav class="site-footer__col" aria-label="${t.common.footerNavTitle}">
-      <h2>${t.common.footerNavTitle}</h2>
-      <ul>${navItems}<li><a href="${url('devis')}">${t.navCta}</a></li></ul>
-    </nav>
-    <div class="site-footer__col">
-      <h2>${t.common.footerContactTitle}</h2>
-      <address>
-        <strong>Aziz Amellah</strong>
-        <a href="tel:${c.phoneHref}">${c.phoneDisplay}</a>
-        <a href="mailto:${c.email}">${c.email}</a>
-        <span>${c.address}</span>
-      </address>
+    <div class="foot__cols">
+      <div>
+        <h2 class="label">${t.common.footerContactTitle}</h2>
+        <address>
+          <span>${t.home.atelier.name}</span>
+          <a class="lien num" href="tel:${c.phoneHref}">${c.phoneDisplay}</a>
+          <a class="lien" href="mailto:${c.email}">${c.email}</a>
+          <span>${c.address}</span>
+        </address>
+      </div>
+      <div>
+        <h2 class="label">${t.common.footerHoursTitle}</h2>
+        <ul class="foot__hours">${hours}</ul>
+      </div>
+      <nav aria-label="${t.common.footerNavTitle}">
+        <h2 class="label">${t.common.footerNavTitle}</h2>
+        <ul>${links}<li><a class="lien" href="${url('devis')}">${t.navCta}</a></li></ul>
+      </nav>
+      <div>
+        <h2 class="label">${t.common.footerCertsTitle}</h2>
+        <ul>${certs}</ul>
+      </div>
     </div>
-    <div class="site-footer__col">
-      <h2>${t.common.footerCertsTitle}</h2>
-      <ul class="site-footer__certs">${certs}</ul>
+    <div class="foot__base label">
+      <span>© <span data-year>2026</span> ${t.siteName}. ${t.common.allRights}</span>
+      <span class="num">${c.siret}</span>
     </div>
-  </div>
-  <div class="site-footer__base">
-    <span>© <span data-year>2026</span> ${t.siteName}. ${t.common.allRights}</span>
-    <span>${c.siret}</span>
   </div>
 </footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -194,10 +190,11 @@ function footer(ctx) {
 const jsonLd = (ctx) => `<script type="application/ld+json">${JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'GeneralContractor',
-  name: 'DESTPEC Bâtiment',
-  url: 'https://destpec-batiment.fr',
-  telephone: '+33 3 84 21 45 60',
-  email: 'contact@destpec-batiment.fr',
+  name: ctx.t.siteName,
+  url: 'https://amconstruction.vercel.app',
+  telephone: ctx.t.contact.phoneHref,
+  email: ctx.t.contact.email,
+  founder: { '@type': 'Person', name: ctx.t.home.atelier.name },
   address: {
     '@type': 'PostalAddress',
     streetAddress: '14 rue des Artisans',
@@ -207,7 +204,7 @@ const jsonLd = (ctx) => `<script type="application/ld+json">${JSON.stringify({
   },
   areaServed: 'Territoire de Belfort, Nord Franche-Comté',
   foundingDate: '2008',
-  slogan: ctx.lang === 'fr' ? 'Notre parole de compagnon' : 'A craftsman’s word',
+  slogan: ctx.t.home.atelier.quote,
 })}</script>`;
 
 function devisOverlay(ctx) {
@@ -335,7 +332,7 @@ function devisOverlay(ctx) {
       <h2 class="dov__title">${isFr ? 'Récapitulatif' : 'Summary'}</h2>
       <p class="dov__sub">${isFr ? 'Vérifiez vos informations. Cliquez sur un bloc pour le modifier.' : 'Check your information. Click a block to edit it.'}</p>
       <div class="dov-recap" data-dov-recap></div>
-      <label class="dov-consent"><input type="checkbox" name="dov-consent" data-dov-consent><span>${isFr ? 'J\'accepte que DESTPEC me recontacte au sujet de ma demande. Données traitées conformément au RGPD.' : 'I agree that DESTPEC may contact me regarding my request. Data processed in accordance with GDPR.'}</span></label>
+      <label class="dov-consent"><input type="checkbox" name="dov-consent" data-dov-consent><span>${isFr ? 'J\'accepte qu\'AM Construction me recontacte au sujet de ma demande. Données traitées conformément au RGPD.' : 'I agree that AM Construction may contact me regarding my request. Data processed in accordance with GDPR.'}</span></label>
       <p class="dov-error" data-dov-err="consent" hidden>${isFr ? 'Votre accord est nécessaire pour traiter la demande.' : 'Your consent is required to process the request.'}</p>
     </section>
   </div>
