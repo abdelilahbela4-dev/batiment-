@@ -1,7 +1,6 @@
 // AM Construction — page builders. renderPage(key, ctx) -> full HTML document.
 
 import { shell, jsonLd, pic, icon, icons } from './template.js';
-import { PRICES, AIDS, SURFACE } from './pricing.js';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -296,255 +295,38 @@ function homePage(ctx) {
 
 /* ---------- devis ---------- */
 
+// The quote form lives in the overlay built by template.js. This address used to
+// render an older five-step form whose submit never sent anything; it now opens
+// the real form on load (main.js) and keeps direct contact details as a fallback.
 function devisPage(ctx) {
-  const { t, url, lang } = ctx;
-  const d = t.devis;
-
-  const progress = d.steps
-    .map(
-      (s, i) => `<li class="devis-progress__item" data-progress-step="${i}">
-    <span class="devis-progress__dot" aria-hidden="true">${icon('check', 'icon icon--sm')}<i>${i + 1}</i></span>
-    <span class="devis-progress__label">${s.label}</span>
-  </li>`
-    )
+  const { t, url } = ctx;
+  const v = t.home.visit;
+  const hours = t.contact.hours
+    .map(([d, hr]) => `<li><span>${d}</span><span class="num">${hr}</span></li>`)
     .join('');
-
-  const types = d.step1.types
-    .map(
-      (tp) => `<label class="type-card" data-type-card="${tp.id}">
-    <input type="radio" name="type" value="${tp.id}">
-    <span class="type-card__icon">${icon(tp.icon, 'icon icon--xl')}</span>
-    <span class="type-card__title">${tp.title}</span>
-    <span class="type-card__desc">${tp.desc}</span>
-  </label>`
-    )
-    .join('');
-
-  const delays = d.step2.delays
-    .map(
-      (x) => `<label class="chip"><input type="radio" name="delay" value="${x.id}"><span>${x.label}</span></label>`
-    )
-    .join('');
-
-  // Per-type option groups (all rendered; JS toggles visibility)
-  const perType = Object.entries(d.step2.perType)
-    .map(([typeId, cfg]) => {
-      const inputType = cfg.multi ? 'checkbox' : 'radio';
-      const opts = cfg.options
-        .map(
-          (o) =>
-            `<label class="chip"><input type="${inputType}" name="${cfg.field}" value="${o.id}"><span>${o.label}</span></label>`
-        )
-        .join('');
-      const energy = cfg.energy
-        ? `<label class="check"><input type="checkbox" name="energy" value="1"><span class="check__box" aria-hidden="true">${icon('check', 'icon icon--sm')}</span><span>${cfg.energy}</span></label>`
-        : '';
-      return `<div class="devis-field devis-field--type" data-type-options="${typeId}" hidden>
-      <p class="devis-field__label" id="lbl-${cfg.field}">${cfg.label}</p>
-      <div class="chips" role="group" aria-labelledby="lbl-${cfg.field}">${opts}</div>
-      ${energy}
-    </div>`;
-    })
-    .join('');
-
-  const brackets = d.step3.brackets
-    .map(
-      (b) => `<label class="bracket bracket--${b.id}">
-    <input type="radio" name="bracket" value="${b.id}">
-    <span class="bracket__swatch" aria-hidden="true"></span>
-    <span class="bracket__label">${b.label}${b.hint ? `<small>${b.hint}</small>` : ''}</span>
-  </label>`
-    )
-    .join('');
-
-  const slots = d.step5.slots
-    .map((s) => `<label class="chip"><input type="radio" name="slot" value="${s}"><span>${s}</span></label>`)
-    .join('');
-
-  const nextItems = d.confirm.nextItems
-    .map(
-      (x, i) => `<li class="confirm-next__item">
-    <span class="process-step__n" aria-hidden="true">${i + 1}</span>
-    <div><h3>${x.title}</h3><p>${x.body}</p></div>
-  </li>`
-    )
-    .join('');
-
-  const config = {
-    lang,
-    prices: PRICES,
-    aids: AIDS,
-    typeLabels: Object.fromEntries(d.step1.types.map((x) => [x.id, x.title])),
-    strings: {
-      estimateEmpty: d.estimate.empty,
-      range: d.estimate.range,
-      vat: d.estimate.vat,
-      surface: d.estimate.surfaceLabel,
-      perM2: d.estimate.perM2,
-      aidsTitle: d.step3.aidsTitle,
-      noAids: d.step3.noAids,
-      notEligible: d.step3.notEligible,
-      unknown: d.step3.unknown,
-      lines: d.step3.lines,
-      totalAids: d.step3.totalAids,
-      net: d.step3.net,
-      errors: d.step4.errors,
-      typeRequired: lang === 'fr' ? 'Choisissez un type de projet pour continuer.' : 'Pick a project type to continue.',
-      slotRequired: lang === 'fr' ? 'Choisissez un jour et un créneau, ou cochez « pas besoin de rappel ».' : 'Pick a day and a slot, or tick “no call needed”.',
-      confirmTitle: d.confirm.title,
-      confirmBody: d.confirm.body,
-      progress: d.progress,
-      whenCall: d.confirm.whenCall,
-      whenMail: d.confirm.whenMail,
-      noCall: d.step5.noCall,
-      weekdaysShort: d.step5.weekdaysShort,
-      monthsShort: d.step5.monthsShort,
-      dayLabel: d.step5.dayLabel,
-    },
-  };
 
   return `
-<section class="page-head page-head--light">
-  <div class="wrap page-head__inner">
-    <h1 class="h-display page-head__title">${d.head.title}</h1>
-    <p class="page-head__sub">${d.head.sub}</p>
-    <ul class="devis-trust">${d.trust.map((x) => `<li>${icon('check', 'icon icon--sm')}<span>${x}</span></li>`).join('')}</ul>
-  </div>
-</section>
-
-<section class="section section--bone devis-section">
+<section class="visit devis-landing" id="contact">
   <div class="wrap">
-    <div class="devis" data-devis>
-      <ol class="devis-progress">${progress}</ol>
-      <p class="visually-hidden" role="status" data-devis-status></p>
-
-      <div class="devis__grid" data-devis-main>
-        <form class="devis__form" novalidate data-devis-form>
-          <fieldset class="devis-step" data-step="0">
-            <legend><span class="devis-step__title">${d.step1.title}</span><span class="devis-step__sub">${d.step1.sub}</span></legend>
-            <div class="type-grid">${types}</div>
-            <p class="field-error" data-error-for="type" hidden></p>
-          </fieldset>
-
-          <fieldset class="devis-step" data-step="1" hidden>
-            <legend><span class="devis-step__title">${d.step2.title}</span><span class="devis-step__sub">${d.step2.sub}</span></legend>
-            <div class="devis-field">
-              <label class="devis-field__label" for="surface">${d.step2.surface} · <output for="surface" data-surface-out>100</output> ${d.step2.surfaceUnit}</label>
-              <input type="range" id="surface" name="surface" min="20" max="300" step="5" value="100" data-surface>
-              <div class="range-marks" aria-hidden="true"><span>20</span><span>300 ${d.step2.surfaceUnit}</span></div>
-            </div>
-            ${perType}
-            <div class="devis-field">
-              <p class="devis-field__label" id="lbl-delay">${d.step2.delay}</p>
-              <div class="chips" role="group" aria-labelledby="lbl-delay">${delays}</div>
-            </div>
-          </fieldset>
-
-          <fieldset class="devis-step" data-step="2" hidden>
-            <legend><span class="devis-step__title">${d.step3.title}</span><span class="devis-step__sub">${d.step3.sub}</span></legend>
-            <p class="devis-field__label" id="lbl-bracket">${d.step3.bracketLabel}</p>
-            <div class="brackets" role="radiogroup" aria-labelledby="lbl-bracket">${brackets}</div>
-            <div class="aids-panel" data-aids-panel aria-live="polite"></div>
-            <p class="devis-note">${d.step3.disclaimer}</p>
-          </fieldset>
-
-          <fieldset class="devis-step" data-step="3" hidden>
-            <legend><span class="devis-step__title">${d.step4.title}</span><span class="devis-step__sub">${d.step4.sub}</span></legend>
-            <div class="form-grid">
-              <div class="form-field">
-                <label for="d-name">${d.step4.name} <span class="req" aria-hidden="true">*</span></label>
-                <input type="text" id="d-name" name="name" placeholder="${d.step4.namePh}" autocomplete="name" required>
-                <p class="field-error" data-error-for="name" hidden></p>
-              </div>
-              <div class="form-field">
-                <label for="d-email">${d.step4.email} <span class="req" aria-hidden="true">*</span></label>
-                <input type="email" id="d-email" name="email" placeholder="${d.step4.emailPh}" autocomplete="email" required>
-                <p class="field-error" data-error-for="email" hidden></p>
-              </div>
-              <div class="form-field">
-                <label for="d-phone">${d.step4.phone} <span class="req" aria-hidden="true">*</span></label>
-                <input type="tel" id="d-phone" name="phone" placeholder="${d.step4.phonePh}" autocomplete="tel" inputmode="tel" required>
-                <p class="field-error" data-error-for="phone" hidden></p>
-              </div>
-              <div class="form-field">
-                <label for="d-zip">${d.step4.zip} <span class="req" aria-hidden="true">*</span></label>
-                <input type="text" id="d-zip" name="zip" placeholder="${d.step4.zipPh}" autocomplete="postal-code" inputmode="numeric" maxlength="5" required>
-                <p class="field-error" data-error-for="zip" hidden></p>
-              </div>
-              <div class="form-field form-field--full">
-                <label for="d-message">${d.step4.message}</label>
-                <textarea id="d-message" name="message" rows="4" placeholder="${d.step4.messagePh}"></textarea>
-              </div>
-              <div class="form-field form-field--full">
-                <span class="devis-field__label">${d.step4.photos}</span>
-                <p class="devis-note">${d.step4.photosHint}</p>
-                <label class="upload" data-upload>
-                  <input type="file" accept="image/*" multiple data-upload-input>
-                  <span class="upload__btn">${icon('camera')}<span>${d.step4.photosAdd}</span></span>
-                </label>
-                <ul class="upload-list" data-upload-list></ul>
-              </div>
-              <div class="form-field form-field--full">
-                <label class="check">
-                  <input type="checkbox" name="consent" value="1" required>
-                  <span class="check__box" aria-hidden="true">${icon('check', 'icon icon--sm')}</span>
-                  <span>${d.step4.consent}</span>
-                </label>
-                <p class="field-error" data-error-for="consent" hidden></p>
-              </div>
-            </div>
-          </fieldset>
-
-          <fieldset class="devis-step" data-step="4" hidden>
-            <legend><span class="devis-step__title">${d.step5.title}</span><span class="devis-step__sub">${d.step5.sub}</span></legend>
-            <div class="devis-field">
-              <p class="devis-field__label" id="lbl-day">${d.step5.dayLabel}</p>
-              <div class="chips chips--days" role="radiogroup" aria-labelledby="lbl-day" data-days></div>
-            </div>
-            <div class="devis-field">
-              <p class="devis-field__label" id="lbl-slot">${d.step5.slotLabel}</p>
-              <div class="chips" role="radiogroup" aria-labelledby="lbl-slot">${slots}</div>
-              <label class="check check--nocall">
-                <input type="checkbox" name="nocall" value="1" data-nocall>
-                <span class="check__box" aria-hidden="true">${icon('check', 'icon icon--sm')}</span>
-                <span>${d.step5.noCall}</span>
-              </label>
-              <p class="field-error" data-error-for="slot" hidden></p>
-            </div>
-          </fieldset>
-
-          <div class="devis-nav">
-            <button class="btn btn--outline" type="button" data-prev hidden>${d.nav.prev}</button>
-            <button class="btn btn--primary" type="button" data-next>${d.nav.next}${icon('arrow')}</button>
-            <button class="btn btn--primary btn--lg" type="submit" data-submit hidden>${icon('check')}${d.nav.submit}</button>
-          </div>
-        </form>
-      </div>
-
-      <div class="confirm" data-confirm hidden>
-        <div class="confirm__badge">${icon('check', 'icon icon--lg')}<span>${d.confirm.badge}</span></div>
-        <h2 class="h-display" data-confirm-title></h2>
-        <p class="confirm__body" data-confirm-body></p>
-        <p class="confirm__ref"><span>${d.confirm.refLabel}</span><strong data-confirm-ref></strong></p>
-        <div class="confirm__cols">
-          <div class="confirm__recap">
-            <h3>${d.confirm.recap}</h3>
-            <dl data-confirm-recap></dl>
-          </div>
-          <div class="confirm__next">
-            <h3>${d.confirm.next}</h3>
-            <ol class="confirm-next">${nextItems}</ol>
-          </div>
-        </div>
-        <div class="confirm__actions">
-          <a class="btn btn--outline" href="${url('home')}">${d.confirm.backHome}</a>
-          <button class="btn btn--outline" type="button" data-confirm-reset>${d.confirm.newRequest}</button>
+    <div class="strip"><span class="label">${v.label}</span><span class="label strip__aside">${t.contact.address}</span></div>
+    <div class="grid12 visit__grid">
+      <div class="visit__main">
+        <h1 class="display visit__title">${v.title}</h1>
+        <p class="visit__body">${v.body}</p>
+        <div class="visit__actions">
+          <a class="btn btn--plein btn--lg" href="${url('devis')}">${v.cta}</a>
+          <p class="visit__call">${v.callPrefix} <a class="lien num" href="tel:${t.contact.phoneHref}">${t.contact.phoneDisplay}</a></p>
         </div>
       </div>
+      <dl class="visit__info">
+        <div><dt class="label">${v.depot}</dt><dd>${t.contact.address}<br><span class="muted">${v.depotNote}</span></dd></div>
+        <div><dt class="label">${v.hours}</dt><dd><ul class="hours">${hours}</ul></dd></div>
+        <div><dt class="label">${v.write}</dt><dd><a class="lien" href="mailto:${t.contact.email}">${t.contact.email}</a></dd></div>
+      </dl>
     </div>
   </div>
-  <script type="application/json" data-devis-config>${JSON.stringify(config)}</script>
-</section>`;
+</section>
+`;
 }
 
 /* ---------- dispatcher ---------- */
