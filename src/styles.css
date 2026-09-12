@@ -409,7 +409,7 @@ main { padding-top: var(--nav-h); }
 .plan__tb span + span { box-shadow: inset 1px 0 0 var(--beton); }
 
 /* method */
-.steps { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; padding-top: 40px; }
+.steps { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; padding-top: 40px; }
 .steps::before, .steps::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; }
 .steps::before { background: var(--beton); }
 .steps::after { background: var(--anthracite); transform: scaleX(var(--p, 1)); transform-origin: left; }
@@ -1027,6 +1027,7 @@ output[data-surface-out] { font-family: var(--font-mono); font-weight: 700; colo
 .dov-consent { display: flex; align-items: flex-start; gap: 12px; margin-top: 12px; cursor: pointer; }
 .dov-consent input { flex: none; width: 20px; height: 20px; margin-top: 2px; accent-color: var(--anthracite); }
 .dov-consent span { font-size: 15px; line-height: 1.5; color: var(--zinc); }
+.dov-notice { margin-top: 14px; font-size: 14px; line-height: 1.5; color: var(--zinc); }
 
 .dov__foot {
   display: flex; align-items: center; gap: 12px; padding: 14px 32px;

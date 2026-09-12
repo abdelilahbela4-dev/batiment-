@@ -227,14 +227,6 @@ function devisOverlay(ctx) {
     <span class="dov-tile__desc">${tp.desc}</span>
   </label>`).join('');
 
-  const budgets = [
-    { id: 'small', label: isFr ? 'Moins de 30 000 €' : 'Under €30,000' },
-    { id: 'mid', label: isFr ? '30 000 – 80 000 €' : '€30,000 – €80,000' },
-    { id: 'large', label: isFr ? '80 000 – 150 000 €' : '€80,000 – €150,000' },
-    { id: 'xl', label: isFr ? 'Plus de 150 000 €' : 'Over €150,000' },
-  ];
-  const budgetChips = budgets.map(b => `<label class="dov-chip"><input type="radio" name="dov-budget" value="${b.id}"><span>${b.label}</span></label>`).join('');
-
   const delays = [
     { id: 'asap', label: isFr ? 'Dès que possible' : 'ASAP' },
     { id: '3months', label: isFr ? 'Dans 3 mois' : 'In 3 months' },
@@ -301,7 +293,6 @@ function devisOverlay(ctx) {
       <h2 class="dov__title">${isFr ? 'Votre projet' : 'Your project'}</h2>
       <p class="dov__sub">${isFr ? 'Ces détails nous aident à préparer votre devis.' : 'These details help us prepare your quote.'}</p>
       <div>
-          <fieldset class="dov-fieldset"><legend>${isFr ? 'Budget estimé' : 'Estimated budget'}</legend><div class="dov-chips">${budgetChips}</div></fieldset>
           <fieldset class="dov-fieldset"><legend>${isFr ? 'Délai souhaité' : 'Desired timeline'}</legend><div class="dov-chips">${delayChips}</div></fieldset>
           <div class="dov-field dov-field--full">
             <label>${isFr ? 'Photos du projet (facultatif)' : 'Project photos (optional)'}</label>
@@ -332,8 +323,7 @@ function devisOverlay(ctx) {
       <h2 class="dov__title">${isFr ? 'Récapitulatif' : 'Summary'}</h2>
       <p class="dov__sub">${isFr ? 'Vérifiez vos informations. Cliquez sur un bloc pour le modifier.' : 'Check your information. Click a block to edit it.'}</p>
       <div class="dov-recap" data-dov-recap></div>
-      <label class="dov-consent"><input type="checkbox" name="dov-consent" data-dov-consent><span>${isFr ? 'J\'accepte qu\'AM Construction me recontacte au sujet de ma demande. Données traitées conformément au RGPD.' : 'I agree that AM Construction may contact me regarding my request. Data processed in accordance with GDPR.'}</span></label>
-      <p class="dov-error" data-dov-err="consent" hidden>${isFr ? 'Votre accord est nécessaire pour traiter la demande.' : 'Your consent is required to process the request.'}</p>
+      <p class="dov-notice">${isFr ? 'En envoyant votre demande, vous acceptez d\'être recontacté à son sujet. Vos données ne servent qu\'à établir votre devis.' : 'By sending your request you agree to be contacted about it. Your data is only used to prepare your quote.'}</p>
     </section>
   </div>
 
@@ -349,7 +339,7 @@ function devisOverlay(ctx) {
       <svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="36" fill="none" stroke="var(--sanguine)" stroke-width="3" class="dov-confirm__circle"/><path d="M24 42l10 10 22-24" fill="none" stroke="var(--sanguine-hi)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="dov-confirm__check"/></svg>
     </div>
     <h2 class="dov__title">${isFr ? 'Merci, votre demande est bien reçue.' : 'Thank you, your request has been received.'}</h2>
-    <p class="dov-confirm__sub">${isFr ? 'Vous recevrez votre devis sous 24 h, par email ou WhatsApp.' : 'You will receive your quote within 24 hours, by email or WhatsApp.'}</p>
+    <p class="dov-confirm__sub">${isFr ? 'Vous recevrez votre devis sous 48 h, par email ou WhatsApp.' : 'You will receive your quote within 48 hours, by email or WhatsApp.'}</p>
     <div class="dov-confirm__trust">
       <span>${icon('user')} ${isFr ? 'Un interlocuteur unique' : 'A single point of contact'}</span>
       <span>${icon('shield')} ${isFr ? 'Garantie décennale AXA' : 'AXA 10-year warranty'}</span>

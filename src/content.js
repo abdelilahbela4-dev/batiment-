@@ -28,7 +28,7 @@ export const content = {
       { key: 'atelier', label: 'L’atelier' },
       { key: 'contact', label: 'Contact' },
     ],
-    navCta: 'Demander une visite',
+    navCta: 'Demander votre devis',
     navOpen: 'Menu',
     navClose: 'Fermer',
 
@@ -38,13 +38,13 @@ export const content = {
         desc: 'Entreprise générale du bâtiment à Belfort : construction de maisons, rénovation, extension, isolation. Visite technique gratuite, devis détaillé, garantie décennale, certifié RGE.',
       },
       devis: {
-        title: 'Demander une visite · AM Construction',
+        title: 'Demander votre devis · AM Construction',
         desc: 'Décrivez votre projet en 5 étapes : type de travaux, coordonnées, budget, adresse. Visite technique gratuite, réponse sous 48 h.',
       },
     },
 
     common: {
-      ctaDevis: 'Demander une visite',
+      ctaDevis: 'Demander votre devis',
       ctaCall: `Appeler le ${PHONE_FR}`,
       call: 'Appeler',
       skip: 'Aller au contenu',
@@ -64,7 +64,7 @@ export const content = {
       hero: {
         title: 'On vous rend la maison <em>finie</em>.',
         sub: 'Construction, rénovation, extension et isolation à Belfort. Un interlocuteur, un planning contractuel, un budget tenu.',
-        cta: 'Demander une visite',
+        cta: 'Demander votre devis',
         callPrefix: 'ou appelez le',
         seqAlt: 'La même maison, du crépi fissuré sous ciel gris jusqu’à la façade refaite en plein soleil.',
         beat3: {
@@ -144,33 +144,36 @@ export const content = {
 
       method: {
         label: 'Méthode',
-        count: '5 étapes',
+        count: '6 étapes',
         title: 'Une méthode, <em>pas des promesses</em>.',
         sub: 'Du premier rendez-vous à la réception, chaque étape est écrite avant de commencer.',
         steps: [
-          { n: '1', title: 'Visite technique', body: 'Gratuite, chez vous, avec relevés et photos. 45 minutes.' },
-          { n: '2', title: 'Devis détaillé', body: 'Poste par poste, prix ferme, sous 48 h à 5 jours selon complexité.' },
-          { n: '3', title: 'Planning signé', body: 'Dates de début et de fin écrites, pénalités de retard à notre charge.' },
-          { n: '4', title: 'Chantier suivi', body: 'Point photo chaque semaine, conducteur de travaux joignable.' },
-          { n: '5', title: 'Réception & garanties', body: 'Visite de réception contradictoire, garantie décennale AXA.' },
+          { n: '1', title: 'Demandez votre devis', body: 'Gratuit et en ligne, en 3 minutes. Réponse sous 48 h.' },
+          { n: '2', title: 'Visite technique', body: 'Gratuite, chez vous, avec relevés et photos. 45 minutes.' },
+          { n: '3', title: 'Devis détaillé', body: 'Poste par poste, prix ferme, sous 48 h à 5 jours selon complexité.' },
+          { n: '4', title: 'Planning signé', body: 'Dates de début et de fin écrites, pénalités de retard à notre charge.' },
+          { n: '5', title: 'Chantier suivi', body: 'Point photo chaque semaine, conducteur de travaux joignable.' },
+          { n: '6', title: 'Réception & garanties', body: 'Visite de réception contradictoire, garantie décennale AXA.' },
         ],
         guaranteesLabel: 'Garanties',
       },
 
       atelier: {
         label: 'L’atelier',
-        count: 'Depuis 2008',
+        count: 'Depuis 2015',
         role: 'Le fondateur',
         name: 'Aziz Amellah',
         body: [
-          'Compagnon maçon formé au Tour de France, Aziz Amellah reprend en 2008 la petite entreprise de son oncle à Belfort, avec une règle : on ne signe que ce qu’on peut faire soi-même.',
-          'Pas de force de vente : celui qui visite votre maison est celui qui dirige le chantier.',
+          'Compagnon maçon formé au Tour de France, Aziz Amellah a toujours construit bien plus que des murs.',
+          'Ce qui devait être un métier est devenu une vocation. Année après année, les chantiers se sont enchaînés, les projets ont grandi, les équipes aussi. Sans jamais perdre l’essentiel : le goût du travail bien fait et la parole donnée.',
+          'Il ne pensait pas un jour aller aussi loin, ni voir autant de personnes lui confier leur maison, leur rénovation, leur projet. Mais une chose n’a jamais changé : quand Aziz dit qu’il fera quelque chose, il le fait.',
+          'Au Maroc, on dit « 3endo lkelma » — il a une parole qui compte.',
+          'C’est cette valeur qui guide encore chaque chantier : être présent, tenir ses engagements et laisser derrière soi un travail dont on peut être fier.',
         ],
         quote: 'Ce qu’on écrit, on le construit.',
         figures: [
-          { value: '2008', label: 'Reprise de l’entreprise' },
-          { value: '240', label: 'Chantiers livrés' },
-          { value: '22', label: 'Salariés en interne' },
+          { value: '2015', label: 'Année de création' },
+          { value: '140', label: 'Chantiers livrés' },
         ],
         alt: 'Portrait d’Aziz Amellah, fondateur d’AM Construction',
       },
@@ -207,7 +210,7 @@ export const content = {
         label: 'Contact',
         title: 'Parlons de <em>votre maison</em>.',
         body: 'Visite technique gratuite, chez vous, avec relevés et photos. Devis détaillé poste par poste sous 48 h à 5 jours.',
-        cta: 'Demander une visite',
+        cta: 'Demander votre devis',
         callPrefix: 'ou appelez le',
         depot: 'Le dépôt',
         depotNote: 'Bureau et atelier. Chantiers dans un rayon de 30 km.',

@@ -244,7 +244,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const confirmEl = overlay.querySelector('[data-dov-confirm]');
 
   const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
-  const state = { step: 0, types: [], desc: '', lname: '', fname: '', email: '', phone: '', pref: 'email', budget: '', delay: '', photos: [], address: '', zip: '', city: '', consent: false };
+  const state = { step: 0, types: [], desc: '', lname: '', fname: '', email: '', phone: '', pref: 'email', delay: '', photos: [], address: '', zip: '', city: '' };
   const TOTAL = steps.length;
 
   /* -- open / close -- */
@@ -327,10 +327,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
       if (!state.city.trim()) { setErr('city', CFG.errors.city); ok = false; }
       return ok;
     }
-    if (n === 4) {
-      if (!state.consent) { setErr('consent', ''); overlay.querySelector('[data-dov-err="consent"]').hidden = false; return false; }
-      return true;
-    }
     return true;
   }
 
@@ -348,7 +344,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     state.pref = (overlay.querySelector('input[name="dov-pref"]:checked') || {}).value || 'email';
   }
   function readStep2() {
-    state.budget = (overlay.querySelector('input[name="dov-budget"]:checked') || {}).value || '';
     state.delay = (overlay.querySelector('input[name="dov-delay"]:checked') || {}).value || '';
   }
   function readStep3() {
@@ -357,10 +352,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     state.zip = g('dov-zip');
     state.city = g('dov-city');
   }
-
-  /* -- consent -- */
-  const consentBox = overlay.querySelector('[data-dov-consent]');
-  if (consentBox) consentBox.addEventListener('change', () => { state.consent = consentBox.checked; });
 
   function renderEstimate() {}
 
@@ -413,7 +404,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     const recapEl = overlay.querySelector('[data-dov-recap]');
     if (!recapEl) return;
     const typeLabels = { renovation: isFr ? 'Rénovation' : 'Renovation', construction: isFr ? 'Construction neuve' : 'New build', extension: 'Extension', isolation: isFr ? 'Isolation' : 'Insulation', amenagement: isFr ? 'Aménagement' : 'Conversion', toiture: isFr ? 'Toiture' : 'Roofing', autre: isFr ? 'Autre' : 'Other' };
-    const budgetLabels = { small: '< 30 000 €', mid: '30 – 80 k€', large: '80 – 150 k€', xl: '> 150 000 €' };
     const delayLabels = { asap: isFr ? 'Dès que possible' : 'ASAP', '3months': isFr ? '3 mois' : '3 months', '6months': isFr ? '6 mois' : '6 months', info: isFr ? 'Se renseigne' : 'Researching' };
     const prefLabels = { email: 'Email', whatsapp: 'WhatsApp', phone: isFr ? 'Téléphone' : 'Phone' };
 
@@ -425,7 +415,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     recapEl.innerHTML = [
       block(isFr ? 'Travaux' : 'Work', state.types.map(t => typeLabels[t] || t).join(', ') + (state.desc ? `<br><em>"${state.desc.substring(0, 80)}${state.desc.length > 80 ? '…' : ''}"</em>` : ''), 0),
       block(isFr ? 'Contact' : 'Contact', `${state.fname} ${state.lname}<br>${state.email}<br>${state.phone}<br><em>${isFr ? 'Préférence :' : 'Preference:'} ${prefLabels[state.pref]}</em>`, 1),
-      block(isFr ? 'Projet' : 'Project', `${state.budget ? (isFr ? 'Budget : ' : 'Budget: ') + (budgetLabels[state.budget] || '–') : ''}${state.delay ? (isFr ? ' · Délai : ' : ' · Timeline: ') + (delayLabels[state.delay] || '–') : ''}${state.photos.length ? ` · ${state.photos.length} photo${state.photos.length > 1 ? 's' : ''}` : ''}`, 2),
+      block(isFr ? 'Projet' : 'Project', `${state.delay ? (isFr ? 'Délai : ' : 'Timeline: ') + (delayLabels[state.delay] || '–') : ''}${state.photos.length ? `${state.delay ? ' · ' : ''}${state.photos.length} photo${state.photos.length > 1 ? 's' : ''}` : ''}` || (isFr ? 'Non precise' : 'Not specified'), 2),
       block(isFr ? 'Adresse' : 'Address', `${state.address ? state.address + ', ' : ''}${state.zip} ${state.city}`, 3),
     ].join('');
 
@@ -476,7 +466,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
       client_id: clientId,
       type_travaux: state.types,
       description: state.desc || null,
-      budget_tranche: state.budget || null,
       delai: state.delay || null,
       photos: photoUrls,
     });
