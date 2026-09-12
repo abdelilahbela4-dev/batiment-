@@ -91,11 +91,48 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const mq = window.matchMedia('(max-width: 860px)');
   let mobile = mq.matches;
 
+  /* ---- phone: the film plays once, the frame keeps moving ---- */
+  // Scrubbing is a pointer idea: it needs random access to the film, which on a
+  // phone costs either 3.2 MB of frames or a seek iOS stutters on. Played
+  // forward the same motion is 333 KB. The hero is not left static for it - the
+  // scroll still drives a slow push through the frame and the copy handover,
+  // both off --seq, so the section keeps moving under the thumb.
+  const video = stage.querySelector('[data-seq-video]');
+  let videoStarted = false;
+
+  const playReveal = () => {
+    if (videoStarted || !video) return;
+    videoStarted = true;
+    // preload plus play is enough to start the fetch. Calling load() as well
+    // made the browser pull the file twice - 667 KB for a 333 KB video.
+    video.preload = 'auto';
+    const go = video.play();
+    // Autoplay can still be refused. The poster is the finished house, so a
+    // refusal leaves the hero looking deliberate rather than broken.
+    if (go && go.catch) go.catch(() => {});
+  };
+
+  const stageInView = () => {
+    const r = stage.getBoundingClientRect();
+    return r.top < window.innerHeight && r.bottom > 0;
+  };
+
+  if (mobile && video) {
+    // The hero opens the page, so normally it is already on screen and there is
+    // nothing to wait for. The observer covers arrival by anchor, and a first
+    // scroll backs it up in case the observer never fires.
+    if (stageInView()) playReveal();
+    else if (window.IntersectionObserver) {
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) if (e.isIntersecting) { playReveal(); io.disconnect(); }
+      }, { threshold: 0.25 });
+      io.observe(stage);
+    }
+    window.addEventListener('scroll', () => { if (stageInView()) playReveal(); }, { passive: true, once: true });
+  }
+
   const count = parseInt(stage.dataset.seqFrames, 10) || 80;
-  const prefix = () => (mobile
-    ? stage.dataset.seqMobile || '/frames/mobile/frame_'
-    : stage.dataset.seqDesktop || '/frames/desktop/frame_');
-  const src = (i) => `${prefix()}${String(i + 1).padStart(4, '0')}.webp`;
+  const src = (i) => `${stage.dataset.seqDesktop || '/frames/desktop/frame_'}${String(i + 1).padStart(4, '0')}.webp`;
 
   let frames = new Array(count);
   let requested = new Array(count).fill(false);
@@ -190,20 +227,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const CONCURRENCY = 6;
   let active = 0;
   let queue = [];
-  let requestedTotal = 0;
-
-  // Queueing the whole set at once made the film compete with the stylesheet,
-  // the fonts and the photos exactly while the page was trying to become
-  // usable. Only a window is fetched up front; the rest follows once the reader
-  // scrolls, or just after load. Costs no quality, only ordering.
-  const OPENING_WINDOW = 14;
-  let budget = mobile ? Math.min(OPENING_WINDOW, count) : count;
-
-  const openBudget = () => {
-    if (budget >= count) return;
-    budget = count;
-    refill();
-  };
 
   // Bumped whenever the set is swapped: requests already in flight belong to
   // the old set and must be discarded rather than counted as ready.
@@ -213,7 +236,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     const gen = generation;
     if (requested[i]) return resolve();
     requested[i] = true;
-    requestedTotal += 1;
     const im = new Image();
     im.decoding = 'async';
     const finish = () => {
@@ -250,63 +272,64 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     const pending = [];
     for (let i = 0; i < count; i++) if (!requested[i]) pending.push(i);
     pending.sort((a, b) => Math.abs(a - current) - Math.abs(b - current));
-    queue = pending.slice(0, Math.max(0, budget - requestedTotal));
+    queue = pending;
     pump();
   }
 
   const onScroll = () => {
+    // Runs on a phone too: there are no frames to paint there, but --seq and
+    // --fold still drive the push through the frame and the copy handover.
     readProgress();
-    openBudget();
+    if (cue && scrollTarget > 0.02) cue.classList.add('is-gone');
+    if (mobile) return;
     refill();
     kick();
-    if (cue && scrollTarget > 0.02) cue.classList.add('is-gone');
   };
 
-  Promise.all([0, 1, 2, 3].map(load)).then(() => {
-    if (!isLoaded(0)) {
-      // Sequence failed entirely: leave the static final still in place.
-      if (cue) cue.hidden = true;
-      return;
-    }
-    resize();
-    readProgress();
-    scrollEased = scrollTarget;
-    paintNearest(Math.min(scrollEased * (count - 1), Math.max(0, ready - 1)));
-  });
-  refill();
+  // Guarded rather than returning early at the top of the module: a phone still
+  // needs readProgress running for its own motion, it just must never be sent a
+  // byte of the frame set, which is now the 6.55 MB desktop one.
+  let filmStarted = false;
 
-  // Release the rest once the page's own critical work is done. Deliberately
-  // load rather than requestIdleCallback: idle tracks the main thread, which on
-  // a slow phone falls quiet while the network is still pulling the stylesheet
-  // and the fonts - exactly the window we are keeping clear. Below-the-fold
-  // images are lazy, so load is not held up by them.
-  if (mobile) {
-    const release = () => setTimeout(openBudget, 250);
-    if (document.readyState === 'complete') release();
-    else window.addEventListener('load', release, { once: true });
-  }
+  const startFilm = () => {
+    if (filmStarted || mobile) return;
+    filmStarted = true;
+    Promise.all([0, 1, 2, 3].map(load)).then(() => {
+      if (!isLoaded(0)) {
+        // Sequence failed entirely: leave the static final still in place.
+        if (cue) cue.hidden = true;
+        return;
+      }
+      resize();
+      readProgress();
+      scrollEased = scrollTarget;
+      paintNearest(Math.min(scrollEased * (count - 1), Math.max(0, ready - 1)));
+    });
+    refill();
+  };
 
-  // Crossing the breakpoint: drop the old set and refetch at the new aspect,
-  // since the two sets differ in shape. The canvas keeps its last frame so the
-  // hero never flashes empty while the replacement arrives.
-  const switchSet = () => {
+  startFilm();
+  readProgress();
+
+  // Crossing the breakpoint swaps which hero is live: the scrubbed film on a
+  // pointer screen, the played reveal on a phone. Frames are fetched only at
+  // the moment the wide layout actually becomes live.
+  const onBreakpoint = () => {
     if (mq.matches === mobile) return;
     mobile = mq.matches;
-    generation += 1;
-    frames = new Array(count);
-    requested = new Array(count).fill(false);
-    queue = [];
-    requestedTotal = 0;
-    budget = count; // past the first paint by now, so no need to ration
-    ready = 0;
-    painted = -1;
-    ease = mobile ? 0.09 : 0.08;
-    resize();
-    refill();
-    kick();
+    if (mobile) {
+      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+      if (still) still.style.visibility = '';
+      playReveal();
+    } else {
+      if (video && !video.paused) video.pause();
+      resize();
+      startFilm();
+      kick();
+    }
   };
-  if (mq.addEventListener) mq.addEventListener('change', switchSet);
-  else if (mq.addListener) mq.addListener(switchSet);
+  if (mq.addEventListener) mq.addEventListener('change', onBreakpoint);
+  else if (mq.addListener) mq.addListener(onBreakpoint);
 
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', () => {

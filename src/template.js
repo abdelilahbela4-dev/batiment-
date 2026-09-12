@@ -91,7 +91,7 @@ function head(ctx, title, desc, extra = '') {
 <link rel="stylesheet" href="/assets/styles.css">
 ${ctx.page === 'home' ? `<link rel="preload" as="image" href="/frames/desktop/frame_0001.webp" media="(min-width: 861px)">
 <link rel="preload" as="image" href="/frames/desktop/frame_0002.webp" media="(min-width: 861px)">
-<link rel="preload" as="image" href="/frames/still/final-mobile.webp" media="(max-width: 860px)">` : ''}
+<link rel="preload" as="image" href="/frames/still/hero-avant.webp" media="(max-width: 860px)">` : ''}
 ${extra}
 </head>`;
 }

@@ -130,7 +130,7 @@ function homePage(ctx) {
 
   return `
 <section class="stage" data-seq-stage data-seq-frames="80" data-seq-beats="2"
-         data-seq-desktop="/frames/desktop/frame_" data-seq-mobile="/frames/mobile/frame_"
+         data-seq-desktop="/frames/desktop/frame_"
          data-seq-still-desktop="/frames/still/final-desktop.webp"
          data-seq-still-mobile="/frames/still/final-mobile.webp">
   <div class="stage__viewport">
@@ -139,6 +139,16 @@ function homePage(ctx) {
       <img class="stage__still" src="/frames/still/final-desktop.webp" alt="${h.hero.seqAlt}" fetchpriority="high" width="1600" height="900">
     </picture>
     <canvas class="stage__canvas" data-seq-canvas aria-hidden="true"></canvas>
+    <!-- Phone: two frames rather than eighty. The worn frame is registered onto
+         the finished one - scaled and re-centred so the roofline and openings
+         sit in the same place - so the scroll dissolves between them and the
+         house stays put while the season, the render and the garden change.
+         Scrubbed by the thumb like the desktop film, for 299 KB instead of
+         3.2 MB, and with no frame sequence to stall on a slow connection. -->
+    <div class="stage__ab" aria-hidden="true">
+      <div class="stage__ab-img stage__ab-img--avant"></div>
+      <div class="stage__ab-img stage__ab-img--apres"></div>
+    </div>
     <div class="stage__scrim" aria-hidden="true"></div>
     <button class="stage__cue" data-seq-cue aria-hidden="true" tabindex="-1">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
@@ -155,6 +165,16 @@ function homePage(ctx) {
             <a class="btn btn--blanc btn--lg" href="${url('devis')}">${h.hero.cta}</a>
             <p class="hero__call">${h.hero.callPrefix} <a class="lien num" href="tel:${t.contact.phoneHref}">${t.contact.phoneDisplay}</a></p>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="beat beat--mid">
+      <div class="beat__inner">
+        <div class="beat__body">
+          <p class="label beat__marker">${h.hero.beat2.marker}</p>
+          <h2 class="beat__title">${h.hero.beat2.title}</h2>
+          <p class="beat__text">${h.hero.beat2.body}</p>
         </div>
       </div>
     </div>

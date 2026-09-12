@@ -67,6 +67,14 @@ export const content = {
         cta: 'Demander votre devis',
         callPrefix: 'ou appelez le',
         seqAlt: 'La même maison, du crépi fissuré sous ciel gris jusqu’à la façade refaite en plein soleil.',
+        // Phone only: the hero tells the chantier in three acts rather than two.
+        // Every claim here is already made further down the page — the method
+        // steps — so the hero promises nothing the site does not.
+        beat2: {
+          marker: 'Pendant',
+          title: 'Un interlocuteur, <em>un planning signé</em>.',
+          body: 'Devis détaillé poste par poste, dates de début et de fin écrites, point photo chaque semaine.',
+        },
         beat3: {
           marker: 'Après',
           title: 'Le chantier se ferme, <em>votre histoire commence</em>.',

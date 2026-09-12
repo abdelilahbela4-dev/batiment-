@@ -272,6 +272,13 @@ main { padding-top: var(--nav-h); }
 .stage__still, .stage__canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .stage__still { z-index: 0; }
 .stage__canvas { z-index: 1; }
+/* Phone hero: two registered frames, dissolved by scroll. Hidden entirely on a
+   pointer screen, where the scrubbed sequence does the same job with 80. */
+/* Declared as backgrounds, not <img>, and only inside the phone media query:
+   an <img> is fetched even when its container is display:none, so a desktop was
+   downloading 292 KB of phone hero it would never show. */
+.stage__ab { display: none; }
+.stage__ab-img { position: absolute; inset: 0; background-size: cover; background-position: 50% 50%; }
 .stage__scrim {
   position: absolute; inset: 0; z-index: 2;
   background:
@@ -280,6 +287,7 @@ main { padding-top: var(--nav-h); }
 }
 .stage__beats { position: relative; z-index: 3; margin-top: -100svh; }
 .beat { display: flex; align-items: flex-end; }
+.beat--mid { display: none; }
 .beat--open { min-height: 100svh; }
 .beat--close { min-height: 500svh; }
 .beat__inner { width: 100%; max-width: var(--wrap); margin-inline: auto; padding: 0 var(--m) clamp(40px, 9vh, 96px); }
@@ -1084,11 +1092,13 @@ output[data-surface-out] { font-family: var(--font-mono); font-weight: 700; colo
   .action-bar { display: flex; }
   main { padding-bottom: 72px; }
 
-  /* film — the run is shorter than the desktop's 500svh: on a phone every
-     screen of scroll is a thumb stroke, and four of them before the second
-     title arrives read as the page having stalled. 240svh still gives the
-     orbit room to turn without making the reader work for it. */
-  .beat--close { min-height: 240svh; }
+  /* film — far shorter than the desktop's 500svh. That length existed to give
+     a scrubbed orbit room to turn; the phone plays its reveal instead, so the
+     only thing left to pace is the handover between the two lines. Three thumb
+     strokes to reach the second title read as the page having stalled, so the
+     run is one screen and a bit: enough for the copy to change hands, not
+     enough to feel like work. */
+  .beat--close { min-height: 100svh; }
 
   /* The two beats hand over as the film turns rather than both sitting there:
      the opening copy clears the frame early, the closing copy arrives once the
@@ -1187,6 +1197,53 @@ output[data-surface-out] { font-family: var(--font-mono); font-weight: 700; colo
   .figures dd { font-size: 30px; }
   .strip { flex-wrap: wrap; }
   .foot__base { flex-direction: column; }
+}
+
+/* ---------- the hero on a phone ----------------------------------------- */
+/* 860px, not 960px: this is the breakpoint the sequence module switches on,
+   and if the two disagree there is a band of widths where the canvas is hidden
+   but nothing replaces it. */
+@media (max-width: 860px) {
+  .stage__canvas { display: none; }
+  .stage__ab { display: block; position: absolute; inset: 0; z-index: 1; }
+  .beat--mid { display: flex; }
+
+  /* The dissolve. --seq is the scroll's own progress through the stage, so the
+     thumb drives the transformation exactly as it drives the film on a desktop:
+     it stops where you stop and runs backwards if you scroll back. The house is
+     registered between the two frames, so what changes is the render, the
+     garden, the light and the season - not the building's position. */
+  .stage__ab-img--avant { background-image: url('/frames/still/hero-avant.webp'); }
+  .stage__ab-img--apres {
+    background-image: url('/frames/still/hero-apres.webp');
+    opacity: clamp(0, calc(var(--seq, 0) * 2.5 - 0.85), 1);
+  }
+
+  /* A slow push through both frames, so the picture is never simply parked. */
+  .stage__ab-img,
+  .stage__still {
+    transform: scale(calc(1 + var(--seq, 0) * 0.09));
+    transform-origin: 50% 45%;
+    will-change: transform, opacity;
+  }
+
+  /* Three acts, each holding the frame while the house is at that stage:
+     the worn house, the work, the finished house. Tied to --seq rather than to
+     scroll offsets so the timing survives any change to the run length. */
+  .beat--mid { min-height: 100svh; }
+  .beat--close { min-height: 100svh; }
+
+  .beat--open .beat__body {
+    opacity: clamp(0, calc(1.1 - var(--seq, 0) * 5.5), 1);
+    transform: translateY(calc(var(--seq, 0) * -22px));
+  }
+  .beat--mid .beat__body {
+    opacity: clamp(0, min(calc(var(--seq, 0) * 5 - 1.15), calc(3.5 - var(--seq, 0) * 5)), 1);
+  }
+  .beat--close .beat__body {
+    opacity: clamp(0, calc(var(--seq, 0) * 5 - 3.6), 1);
+    transform: translateY(clamp(0px, calc(24px - var(--seq, 0) * 26px), 24px));
+  }
 }
 
 /* ---------- reduced motion ---------- */
