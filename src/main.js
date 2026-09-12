@@ -85,11 +85,16 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     return;
   }
 
-  const mobile = window.matchMedia('(max-width: 860px)').matches;
-  const basePrefix = mobile
+  // Which set is live has to stay a question, not an answer decided once at
+  // load: crossing the breakpoint (rotating a tablet, dragging a window narrow,
+  // switching to responsive mode in devtools) must swap the frames too, or the
+  // portrait viewport keeps cover-scaling 16:9 desktop frames into a hard zoom.
+  const mq = window.matchMedia('(max-width: 860px)');
+  let mobile = mq.matches;
+  const prefix = () => (mobile
     ? stage.dataset.seqMobile || '/frames/mobile/frame_'
-    : stage.dataset.seqDesktop || '/frames/desktop/frame_';
-  const src = (i) => `${basePrefix}${String(i + 1).padStart(4, '0')}.webp`;
+    : stage.dataset.seqDesktop || '/frames/desktop/frame_');
+  const src = (i) => `${prefix()}${String(i + 1).padStart(4, '0')}.webp`;
 
   const frames = new Array(count);
   const requested = new Array(count).fill(false);
@@ -152,7 +157,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
 
   // Damped enough to stay cinematic, tight enough that the house settles about
   // 1.5 s after the finger stops (0.03 left it drifting for ~4 s).
-  const ease = mobile ? 0.09 : 0.08;
+  let ease = mobile ? 0.09 : 0.08;
 
   const step = () => {
     scrollEased += (scrollTarget - scrollEased) * ease;
@@ -181,12 +186,18 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   let active = 0;
   let queue = [];
 
+  // Bumped whenever the set is swapped: requests already in flight belong to
+  // the old set and must be discarded rather than counted as ready.
+  let generation = 0;
+
   const load = (i) => new Promise((resolve) => {
+    const gen = generation;
     if (requested[i]) return resolve();
     requested[i] = true;
     const im = new Image();
     im.decoding = 'async';
     const finish = () => {
+      if (gen !== generation) return resolve();
       while (ready < count && isLoaded(ready)) ready += 1;
       // Swap the still for the canvas as soon as the opening frames exist.
       if (still && ready >= 4) still.style.visibility = 'hidden';
@@ -199,7 +210,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
       if (im.decode) im.decode().catch(() => {});
       finish();
     };
-    im.onerror = () => { frames[i] = null; resolve(); };
+    im.onerror = () => { if (gen === generation) frames[i] = null; resolve(); };
     im.src = src(i);
     frames[i] = im;
   });
@@ -242,6 +253,26 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     paintNearest(Math.min(scrollEased * (count - 1), Math.max(0, ready - 1)));
   });
   refill();
+
+  // Crossing the breakpoint: drop the old set and refetch at the new aspect.
+  // The canvas deliberately keeps its last frame so the hero never flashes
+  // empty while the replacement loads.
+  const switchSet = () => {
+    if (mq.matches === mobile) return;
+    mobile = mq.matches;
+    generation += 1;
+    frames.fill(undefined);
+    requested.fill(false);
+    queue = [];
+    ready = 0;
+    painted = -1;
+    ease = mobile ? 0.09 : 0.08;
+    resize();
+    refill();
+    kick();
+  };
+  if (mq.addEventListener) mq.addEventListener('change', switchSet);
+  else if (mq.addListener) mq.addListener(switchSet);
 
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', () => {
