@@ -18,6 +18,16 @@
       "src": "/api/(.*)",
       "dest": "https://admin-rho-one-33.vercel.app/api/$1"
     },
+    {
+      "src": "/frames/(.*)",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" },
+      "continue": true
+    },
+    {
+      "src": "/assets/media/(.*)",
+      "headers": { "cache-control": "public, max-age=31536000, immutable" },
+      "continue": true
+    },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

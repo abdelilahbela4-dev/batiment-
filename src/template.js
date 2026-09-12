@@ -89,6 +89,10 @@ function head(ctx, title, desc, extra = '') {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="${FONTS_URL}">
 <link rel="stylesheet" href="/assets/styles.css">
+${ctx.page === 'home' ? `<link rel="preload" as="image" href="/frames/desktop/frame_0001.webp" media="(min-width: 861px)">
+<link rel="preload" as="image" href="/frames/desktop/frame_0002.webp" media="(min-width: 861px)">
+<link rel="preload" as="image" href="/frames/mobile/frame_0001.webp" media="(max-width: 860px)">
+<link rel="preload" as="image" href="/frames/mobile/frame_0002.webp" media="(max-width: 860px)">` : ''}
 ${extra}
 </head>`;
 }

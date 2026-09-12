@@ -62,7 +62,13 @@ document.querySelectorAll('[data-year]').forEach((el) => {
    scrubbed through a <canvas> as the reader scrolls. The <img> still underneath
    remains in the document: with JS off, reduced motion, or a slow network the
    opening is a real photograph (the final renovated frame) rather than an empty
-   box, so the hero is never broken. */
+   box, so the hero is never broken.
+
+   Loading rules that keep the first scrolls smooth on a cold cache:
+   frames are fetched several at a time (serial loading took ~28 s for the set),
+   closest to the current position first, decoded before they count as ready,
+   and the scrub never runs past the frames that have arrived — it trails
+   slightly instead of jumping between distant frames. */
 (() => {
   const stage = document.querySelector('[data-seq-stage]');
   if (!stage) return;
@@ -86,11 +92,18 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const src = (i) => `${basePrefix}${String(i + 1).padStart(4, '0')}.webp`;
 
   const frames = new Array(count);
+  const requested = new Array(count).fill(false);
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) return;
 
   let painted = -1;
   let lastDrawn = null;
+  let ready = 0; // frames available without a gap, counted from the first one
+
+  const isLoaded = (i) => {
+    const f = frames[i];
+    return !!f && f.complete && f.naturalWidth > 0;
+  };
 
   const paintFrame = (frame) => {
     if (!frame || !frame.complete || !frame.naturalWidth) return false;
@@ -143,53 +156,92 @@ document.querySelectorAll('[data-year]').forEach((el) => {
 
   const step = () => {
     scrollEased += (scrollTarget - scrollEased) * ease;
-    const idx = scrollEased * (count - 1);
+    const wanted = scrollEased * (count - 1);
+    const limit = Math.max(0, ready - 1);
+    const idx = Math.min(wanted, limit);
     paintNearest(idx);
-    if (Math.abs(scrollTarget - scrollEased) > 0.0005) {
+    const settling = Math.abs(scrollTarget - scrollEased) > 0.0005;
+    const waiting = wanted > limit + 0.5;
+    if (settling) {
       rafId = requestAnimationFrame(step);
+    } else if (waiting) {
+      rafId = 0; // nothing to animate until more frames arrive; load() kicks us again
     } else {
       scrollEased = scrollTarget;
-      paintNearest(scrollEased * (count - 1));
+      paintNearest(Math.min(scrollEased * (count - 1), limit));
       rafId = 0;
     }
   };
   const kick = () => {
     if (!rafId) rafId = requestAnimationFrame(step);
   };
+
+  /* ---- loading: parallel, need-ordered, decoded before use ---- */
+  const CONCURRENCY = 6;
+  let active = 0;
+  let queue = [];
+
+  const load = (i) => new Promise((resolve) => {
+    if (requested[i]) return resolve();
+    requested[i] = true;
+    const im = new Image();
+    im.decoding = 'async';
+    const finish = () => {
+      while (ready < count && isLoaded(ready)) ready += 1;
+      // Swap the still for the canvas as soon as the opening frames exist.
+      if (still && ready >= 4) still.style.visibility = 'hidden';
+      kick();
+      resolve();
+    };
+    im.onload = () => {
+      // Warm the decoder so the first draw does not cost ~25 ms, but never wait
+      // on it: decode() can stall in a background tab and would freeze the hero.
+      if (im.decode) im.decode().catch(() => {});
+      finish();
+    };
+    im.onerror = () => { frames[i] = null; resolve(); };
+    im.src = src(i);
+    frames[i] = im;
+  });
+
+  const pump = () => {
+    while (active < CONCURRENCY && queue.length) {
+      const i = queue.shift();
+      if (requested[i]) continue;
+      active += 1;
+      load(i).then(() => { active -= 1; pump(); });
+    }
+  };
+
+  // Fetch what the reader is about to see first, then spread outwards.
+  const refill = () => {
+    const current = Math.round(scrollTarget * (count - 1));
+    const pending = [];
+    for (let i = 0; i < count; i++) if (!requested[i]) pending.push(i);
+    pending.sort((a, b) => Math.abs(a - current) - Math.abs(b - current));
+    queue = pending;
+    pump();
+  };
+
   const onScroll = () => {
     readProgress();
+    refill();
     kick();
     if (cue && scrollTarget > 0.02) cue.classList.add('is-gone');
   };
 
-  const load = (i) =>
-    new Promise((resolve) => {
-      if (frames[i]) return resolve();
-      const im = new Image();
-      im.decoding = 'async';
-      im.onload = () => { paintNearest(scrollEased * (count - 1)); resolve(); };
-      im.onerror = () => { frames[i] = null; resolve(); };
-      im.src = src(i);
-      frames[i] = im;
-    });
-
-  const priority = [0, 1, 2, 3, 4, 5, 6, 7, count - 1, count >> 1, count >> 2, (count * 3) >> 2];
-  Promise.all(priority.map(load)).then(() => {
-    if (frames[0] && frames[0].naturalWidth) {
-      resize();
-      if (still) still.style.visibility = 'hidden';
-      readProgress();
-      scrollEased = scrollTarget;
-      paintNearest(scrollEased * (count - 1));
-    } else {
+  Promise.all([0, 1, 2, 3].map(load)).then(() => {
+    if (!isLoaded(0)) {
       // Sequence failed entirely: leave the static final still in place.
       if (cue) cue.hidden = true;
       return;
     }
-    const rest = [];
-    for (let i = 0; i < count; i++) if (!frames[i]) rest.push(i);
-    rest.reduce((chain, i) => chain.then(() => load(i)), Promise.resolve());
+    resize();
+    readProgress();
+    scrollEased = scrollTarget;
+    paintNearest(Math.min(scrollEased * (count - 1), Math.max(0, ready - 1)));
   });
+  refill();
 
   window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', () => {
