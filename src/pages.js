@@ -129,7 +129,7 @@ function homePage(ctx) {
     .join('');
 
   return `
-<section class="stage" data-seq-stage data-seq-frames="80" data-seq-beats="2"
+<section class="stage" data-seq-stage data-seq-frames="80" data-seq-frames-mobile="40" data-seq-beats="2"
          data-seq-desktop="/frames/desktop/frame_" data-seq-mobile="/frames/mobile/frame_"
          data-seq-still-desktop="/frames/still/final-desktop.webp"
          data-seq-still-mobile="/frames/still/final-mobile.webp">

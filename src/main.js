@@ -76,7 +76,6 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const still = stage.querySelector('.stage__still');
   const cue = stage.querySelector('[data-seq-cue]');
   const viewport = stage.querySelector('.stage__viewport');
-  const count = parseInt(stage.dataset.seqFrames, 10) || 80;
 
   // Reduced motion, or no canvas support: leave the static final-renovated
   // still in place — the hero looks intentional, never empty.
@@ -91,13 +90,20 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   // portrait viewport keeps cover-scaling 16:9 desktop frames into a hard zoom.
   const mq = window.matchMedia('(max-width: 860px)');
   let mobile = mq.matches;
+
+  // The phone set is deliberately shorter as well as smaller: 40 frames at
+  // 480x854 weigh 1.9 MB against 5.05 MB for 80 at 540x960, and the canvas is
+  // pinned to dpr 1 (~390px wide) so the extra pixels were never painted.
+  const desktopCount = parseInt(stage.dataset.seqFrames, 10) || 80;
+  const mobileCount = parseInt(stage.dataset.seqFramesMobile, 10) || desktopCount;
+  let count = mobile ? mobileCount : desktopCount;
   const prefix = () => (mobile
     ? stage.dataset.seqMobile || '/frames/mobile/frame_'
     : stage.dataset.seqDesktop || '/frames/desktop/frame_');
   const src = (i) => `${prefix()}${String(i + 1).padStart(4, '0')}.webp`;
 
-  const frames = new Array(count);
-  const requested = new Array(count).fill(false);
+  let frames = new Array(count);
+  let requested = new Array(count).fill(false);
   const ctx = canvas.getContext('2d', { alpha: false });
   if (!ctx) return;
 
@@ -185,6 +191,21 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const CONCURRENCY = 6;
   let active = 0;
   let queue = [];
+  let requestedTotal = 0;
+
+  // On a phone the whole set used to be queued at once, so several megabytes of
+  // film competed with the fonts, the stylesheet and the project photos exactly
+  // while the page was trying to become usable. Only a window around the
+  // current position is fetched up front; the rest is released once the reader
+  // actually scrolls, or once the browser goes idle - whichever comes first.
+  const OPENING_WINDOW = 14;
+  let budget = mobile ? Math.min(OPENING_WINDOW, count) : count;
+
+  const openBudget = () => {
+    if (budget >= count) return;
+    budget = count;
+    refill();
+  };
 
   // Bumped whenever the set is swapped: requests already in flight belong to
   // the old set and must be discarded rather than counted as ready.
@@ -194,6 +215,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     const gen = generation;
     if (requested[i]) return resolve();
     requested[i] = true;
+    requestedTotal += 1;
     const im = new Image();
     im.decoding = 'async';
     const finish = () => {
@@ -225,17 +247,18 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   };
 
   // Fetch what the reader is about to see first, then spread outwards.
-  const refill = () => {
+  function refill() {
     const current = Math.round(scrollTarget * (count - 1));
     const pending = [];
     for (let i = 0; i < count; i++) if (!requested[i]) pending.push(i);
     pending.sort((a, b) => Math.abs(a - current) - Math.abs(b - current));
-    queue = pending;
+    queue = pending.slice(0, Math.max(0, budget - requestedTotal));
     pump();
-  };
+  }
 
   const onScroll = () => {
     readProgress();
+    openBudget();
     refill();
     kick();
     if (cue && scrollTarget > 0.02) cue.classList.add('is-gone');
@@ -254,6 +277,17 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   });
   refill();
 
+  // Release the rest once the page's own critical work is done. This waits on
+  // load rather than requestIdleCallback on purpose: idle tracks the main
+  // thread, which on a slow phone goes quiet while the network is still
+  // fetching the stylesheet and the fonts - exactly the moment we are trying to
+  // keep clear. Below-the-fold images are lazy, so load is not held up by them.
+  if (mobile) {
+    const release = () => setTimeout(openBudget, 250);
+    if (document.readyState === 'complete') release();
+    else window.addEventListener('load', release, { once: true });
+  }
+
   // Crossing the breakpoint: drop the old set and refetch at the new aspect.
   // The canvas deliberately keeps its last frame so the hero never flashes
   // empty while the replacement loads.
@@ -261,9 +295,12 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     if (mq.matches === mobile) return;
     mobile = mq.matches;
     generation += 1;
-    frames.fill(undefined);
-    requested.fill(false);
+    count = mobile ? mobileCount : desktopCount;
+    frames = new Array(count);
+    requested = new Array(count).fill(false);
     queue = [];
+    requestedTotal = 0;
+    budget = count; // the film has already been seen at this point
     ready = 0;
     painted = -1;
     ease = mobile ? 0.09 : 0.08;
