@@ -269,12 +269,9 @@ main { padding-top: var(--nav-h); }
   overflow: hidden; isolation: isolate;
   clip-path: inset(var(--fold, 0px));
 }
-.stage__still, .stage__canvas, .stage__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.stage__still, .stage__canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .stage__still { z-index: 0; }
 .stage__canvas { z-index: 1; }
-/* One of the two ever shows: the scrubbed canvas on a pointer screen, the
-   short reveal on a phone. Neither is loaded for the other. */
-.stage__video { z-index: 1; display: none; }
 .stage__scrim {
   position: absolute; inset: 0; z-index: 2;
   background:
@@ -322,16 +319,6 @@ main { padding-top: var(--nav-h); }
 .stage__cue svg { width: 26px; height: 26px; }
 .stage__cue.is-gone { opacity: 0; }
 
-/* ---------- stage on a phone ------------------------------------------- */
-/* No scrubbing here, so the five screens of scroll that drove the film would
-   be five screens of a photograph that never changes. The hero collapses to
-   its two beats and the reveal plays once on arrival. */
-@media (max-width: 860px) {
-  .stage__canvas { display: none; }
-  .stage__video { display: block; }
-  .stage__cue { display: none; }
-  .beat--close { min-height: 120svh; }
-}
 
 /* ---------- 404 --------------------------------------------------------- */
 .notfound { padding-top: calc(var(--nav-h) + clamp(80px, 14vh, 180px)); padding-bottom: clamp(80px, 14vh, 180px); }
@@ -1097,8 +1084,26 @@ output[data-surface-out] { font-family: var(--font-mono); font-weight: 700; colo
   .action-bar { display: flex; }
   main { padding-bottom: 72px; }
 
-  /* film */
-  .beat--close { min-height: 400svh; }
+  /* film — the run is shorter than the desktop's 500svh: on a phone every
+     screen of scroll is a thumb stroke, and four of them before the second
+     title arrives read as the page having stalled. 240svh still gives the
+     orbit room to turn without making the reader work for it. */
+  .beat--close { min-height: 240svh; }
+
+  /* The two beats hand over as the film turns rather than both sitting there:
+     the opening copy clears the frame early, the closing copy arrives once the
+     house is most of the way rebuilt. --seq is the film's own progress, set on
+     the stage by the sequence module, so the copy is tied to the picture
+     instead of to a guessed scroll distance. */
+  .beat--open .beat__body {
+    opacity: clamp(0, calc(1.15 - var(--seq, 0) * 5), 1);
+    transform: translateY(calc(var(--seq, 0) * -24px));
+    will-change: opacity, transform;
+  }
+  .beat--close .beat__body {
+    opacity: clamp(0, calc(var(--seq, 0) * 4 - 2.2), 1);
+    transform: translateY(clamp(0px, calc(28px - var(--seq, 0) * 40px), 28px));
+  }
   .hero__title { font-size: clamp(40px, 11vw, 64px); line-height: 1.02; max-width: 100%; }
   .hero__sub { align-self: stretch; text-align: center; font-size: 16px; max-width: none; }
   .hero__actions { align-self: stretch; flex-direction: column; align-items: stretch; gap: 12px; }

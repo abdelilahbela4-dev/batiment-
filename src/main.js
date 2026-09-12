@@ -91,51 +91,11 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const mq = window.matchMedia('(max-width: 860px)');
   let mobile = mq.matches;
 
-  /* ---- phone: one short reveal, played on arrival ---- */
-  // Scrubbing is a pointer idea. On a phone it cost 1.9 MB of frames to keep
-  // random access, and seeking a compressed video instead stutters on iOS. The
-  // same motion played forward is 333 KB, so the phone gets the film as a
-  // one-and-a-half second reveal that runs once when the hero is reached and
-  // rests on the finished house.
-  const video = stage.querySelector('[data-seq-video]');
-  let videoStarted = false;
-
-  const playReveal = () => {
-    if (videoStarted || !video) return;
-    videoStarted = true;
-    video.preload = 'auto';
-    video.load();
-    const go = video.play();
-    // Autoplay can still be refused; the poster is the finished house, so a
-    // refusal leaves the hero looking deliberate rather than broken.
-    if (go && go.catch) go.catch(() => {});
-  };
-
-  const stageInView = () => {
-    const r = stage.getBoundingClientRect();
-    return r.top < window.innerHeight && r.bottom > 0;
-  };
-
-  if (mobile && video) {
-    // The hero opens the page, so in the ordinary case it is already on screen
-    // and there is nothing to wait for. The observer is only there for the
-    // arrival-by-anchor case, and a first scroll backs it up in case the
-    // observer never fires.
-    if (stageInView()) {
-      playReveal();
-    } else if (window.IntersectionObserver) {
-      const io = new IntersectionObserver((entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) { playReveal(); io.disconnect(); }
-        }
-      }, { threshold: 0.25 });
-      io.observe(stage);
-    }
-    window.addEventListener('scroll', () => { if (stageInView()) playReveal(); }, { passive: true, once: true });
-  }
-
   const count = parseInt(stage.dataset.seqFrames, 10) || 80;
-  const src = (i) => `${stage.dataset.seqDesktop || '/frames/desktop/frame_'}${String(i + 1).padStart(4, '0')}.webp`;
+  const prefix = () => (mobile
+    ? stage.dataset.seqMobile || '/frames/mobile/frame_'
+    : stage.dataset.seqDesktop || '/frames/desktop/frame_');
+  const src = (i) => `${prefix()}${String(i + 1).padStart(4, '0')}.webp`;
 
   let frames = new Array(count);
   let requested = new Array(count).fill(false);
@@ -191,6 +151,10 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     const rect = stage.getBoundingClientRect();
     const scrollable = rect.height - window.innerHeight;
     scrollTarget = scrollable > 0 ? clamp(-rect.top / scrollable, 0, 1) : 0;
+    // Published so the CSS can hang on the film's own progress: on a phone the
+    // hero copy hands over across the orbit rather than at a guessed scroll
+    // offset, which would drift the moment the run length changed.
+    stage.style.setProperty('--seq', scrollTarget.toFixed(3));
     // Last tenth of the film: the frame folds into a print on the lime-render page.
     const fold = clamp((scrollTarget - 0.9) / 0.1, 0, 1);
     viewport.style.setProperty('--fold', `${((1 - Math.pow(1 - fold, 3)) * Math.min(window.innerWidth * 0.035, 56)).toFixed(1)}px`);
@@ -226,6 +190,20 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const CONCURRENCY = 6;
   let active = 0;
   let queue = [];
+  let requestedTotal = 0;
+
+  // Queueing the whole set at once made the film compete with the stylesheet,
+  // the fonts and the photos exactly while the page was trying to become
+  // usable. Only a window is fetched up front; the rest follows once the reader
+  // scrolls, or just after load. Costs no quality, only ordering.
+  const OPENING_WINDOW = 14;
+  let budget = mobile ? Math.min(OPENING_WINDOW, count) : count;
+
+  const openBudget = () => {
+    if (budget >= count) return;
+    budget = count;
+    refill();
+  };
 
   // Bumped whenever the set is swapped: requests already in flight belong to
   // the old set and must be discarded rather than counted as ready.
@@ -235,6 +213,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     const gen = generation;
     if (requested[i]) return resolve();
     requested[i] = true;
+    requestedTotal += 1;
     const im = new Image();
     im.decoding = 'async';
     const finish = () => {
@@ -271,69 +250,70 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     const pending = [];
     for (let i = 0; i < count; i++) if (!requested[i]) pending.push(i);
     pending.sort((a, b) => Math.abs(a - current) - Math.abs(b - current));
-    queue = pending;
+    queue = pending.slice(0, Math.max(0, budget - requestedTotal));
     pump();
   }
 
   const onScroll = () => {
     readProgress();
+    openBudget();
     refill();
     kick();
     if (cue && scrollTarget > 0.02) cue.classList.add('is-gone');
   };
 
-  // The film is started only where it is actually shown. Guarding here rather
-  // than at the top of the module matters: the remaining set is the desktop
-  // one at 6.55 MB, and a phone must never be sent a byte of it.
-  let filmStarted = false;
+  Promise.all([0, 1, 2, 3].map(load)).then(() => {
+    if (!isLoaded(0)) {
+      // Sequence failed entirely: leave the static final still in place.
+      if (cue) cue.hidden = true;
+      return;
+    }
+    resize();
+    readProgress();
+    scrollEased = scrollTarget;
+    paintNearest(Math.min(scrollEased * (count - 1), Math.max(0, ready - 1)));
+  });
+  refill();
 
-  const startFilm = () => {
-    if (filmStarted || mobile) return;
-    filmStarted = true;
-    Promise.all([0, 1, 2, 3].map(load)).then(() => {
-      if (!isLoaded(0)) {
-        // Sequence failed entirely: leave the static final still in place.
-        if (cue) cue.hidden = true;
-        return;
-      }
-      resize();
-      readProgress();
-      scrollEased = scrollTarget;
-      paintNearest(Math.min(scrollEased * (count - 1), Math.max(0, ready - 1)));
-    });
-    refill();
-  };
+  // Release the rest once the page's own critical work is done. Deliberately
+  // load rather than requestIdleCallback: idle tracks the main thread, which on
+  // a slow phone falls quiet while the network is still pulling the stylesheet
+  // and the fonts - exactly the window we are keeping clear. Below-the-fold
+  // images are lazy, so load is not held up by them.
+  if (mobile) {
+    const release = () => setTimeout(openBudget, 250);
+    if (document.readyState === 'complete') release();
+    else window.addEventListener('load', release, { once: true });
+  }
 
-  startFilm();
-
-  // Crossing the breakpoint swaps which hero is live. Going narrow stops the
-  // scrub and hands over to the reveal; going wide starts the film, fetching
-  // the frames only at that point.
-  const onBreakpoint = () => {
+  // Crossing the breakpoint: drop the old set and refetch at the new aspect,
+  // since the two sets differ in shape. The canvas keeps its last frame so the
+  // hero never flashes empty while the replacement arrives.
+  const switchSet = () => {
     if (mq.matches === mobile) return;
     mobile = mq.matches;
-    if (mobile) {
-      if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-      if (still) still.style.visibility = '';
-      playReveal();
-    } else {
-      if (video && !video.paused) video.pause();
-      resize();
-      startFilm();
-      kick();
-    }
+    generation += 1;
+    frames = new Array(count);
+    requested = new Array(count).fill(false);
+    queue = [];
+    requestedTotal = 0;
+    budget = count; // past the first paint by now, so no need to ration
+    ready = 0;
+    painted = -1;
+    ease = mobile ? 0.09 : 0.08;
+    resize();
+    refill();
+    kick();
   };
-  if (mq.addEventListener) mq.addEventListener('change', onBreakpoint);
-  else if (mq.addListener) mq.addListener(onBreakpoint);
+  if (mq.addEventListener) mq.addEventListener('change', switchSet);
+  else if (mq.addListener) mq.addListener(switchSet);
 
-  window.addEventListener('scroll', () => { if (!mobile) onScroll(); }, { passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', () => {
-    if (mobile) return;
     resize();
     onScroll();
   });
   window.addEventListener('orientationchange', () => {
-    if (mobile) return;
     resize();
     onScroll();
   });

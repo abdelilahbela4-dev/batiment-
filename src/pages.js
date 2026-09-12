@@ -130,7 +130,7 @@ function homePage(ctx) {
 
   return `
 <section class="stage" data-seq-stage data-seq-frames="80" data-seq-beats="2"
-         data-seq-desktop="/frames/desktop/frame_"
+         data-seq-desktop="/frames/desktop/frame_" data-seq-mobile="/frames/mobile/frame_"
          data-seq-still-desktop="/frames/still/final-desktop.webp"
          data-seq-still-mobile="/frames/still/final-mobile.webp">
   <div class="stage__viewport">
@@ -139,15 +139,6 @@ function homePage(ctx) {
       <img class="stage__still" src="/frames/still/final-desktop.webp" alt="${h.hero.seqAlt}" fetchpriority="high" width="1600" height="900">
     </picture>
     <canvas class="stage__canvas" data-seq-canvas aria-hidden="true"></canvas>
-    <!-- Phone: the film is a short reveal that plays once when the hero is
-         reached, not a scrubbed sequence. Scrubbing needs random access, which
-         on a phone costs either 1.9 MB of frames or a seek that iOS stutters
-         on; played forward the same motion is 333 KB. -->
-    <video class="stage__video" data-seq-video muted playsinline preload="none"
-           aria-hidden="true" tabindex="-1" disablepictureinpicture
-           poster="/frames/still/final-mobile.webp">
-      <source src="/hero-mobile.mp4" type="video/mp4">
-    </video>
     <div class="stage__scrim" aria-hidden="true"></div>
     <button class="stage__cue" data-seq-cue aria-hidden="true" tabindex="-1">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
