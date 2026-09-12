@@ -9,6 +9,7 @@ import { existsSync } from 'node:fs';
 
 import { LANGS, content } from './src/content.js';
 import { renderPage } from './src/pages.js';
+import { shell } from './src/template.js';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const dist = join(root, 'dist');
@@ -65,6 +66,34 @@ async function build() {
 
   // Public assets served at the site root (frame sequences for the hero, etc.)
   await cp(join(root, 'public'), dist, { recursive: true });
+
+  // Not found. A real 404 rather than the homepage with a 200: answering "found
+  // it" for an address that does not exist lets search engines index invented
+  // URLs, and it hides mistakes - a missing file looks like a working page.
+  const ctx404 = {
+    lang: 'fr',
+    t: content.fr,
+    page: 'home',
+    url: (key) => urlFor('fr', key),
+  };
+  const notFound = shell(ctx404, {
+    title: 'Page introuvable · AM Construction',
+    desc: 'Cette page n’existe pas ou a été déplacée.',
+    bodyClass: 'page-404',
+    main: `
+<section class="section notfound">
+  <div class="wrap">
+    <p class="label">Erreur 404</p>
+    <h1 class="h2 notfound__title">Cette page n’existe pas.</h1>
+    <p class="notfound__text">Le lien est peut-être ancien, ou l’adresse comporte une erreur.</p>
+    <div class="notfound__actions">
+      <a class="btn btn--lg btn--plein" href="${urlFor('fr', 'home')}">Retour à l’accueil</a>
+      <a class="btn btn--lg" href="${urlFor('fr', 'devis')}">Demander votre devis</a>
+    </div>
+  </div>
+</section>`,
+  });
+  await writeFile(join(dist, '404.html'), notFound, 'utf8');
 
   // Root redirect to /fr/
   await writeFile(

@@ -269,9 +269,12 @@ main { padding-top: var(--nav-h); }
   overflow: hidden; isolation: isolate;
   clip-path: inset(var(--fold, 0px));
 }
-.stage__still, .stage__canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.stage__still, .stage__canvas, .stage__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .stage__still { z-index: 0; }
 .stage__canvas { z-index: 1; }
+/* One of the two ever shows: the scrubbed canvas on a pointer screen, the
+   short reveal on a phone. Neither is loaded for the other. */
+.stage__video { z-index: 1; display: none; }
 .stage__scrim {
   position: absolute; inset: 0; z-index: 2;
   background:
@@ -318,6 +321,23 @@ main { padding-top: var(--nav-h); }
 }
 .stage__cue svg { width: 26px; height: 26px; }
 .stage__cue.is-gone { opacity: 0; }
+
+/* ---------- stage on a phone ------------------------------------------- */
+/* No scrubbing here, so the five screens of scroll that drove the film would
+   be five screens of a photograph that never changes. The hero collapses to
+   its two beats and the reveal plays once on arrival. */
+@media (max-width: 860px) {
+  .stage__canvas { display: none; }
+  .stage__video { display: block; }
+  .stage__cue { display: none; }
+  .beat--close { min-height: 120svh; }
+}
+
+/* ---------- 404 --------------------------------------------------------- */
+.notfound { padding-top: calc(var(--nav-h) + clamp(80px, 14vh, 180px)); padding-bottom: clamp(80px, 14vh, 180px); }
+.notfound__title { margin-top: 18px; max-width: 16ch; }
+.notfound__text { margin-top: 20px; max-width: 46ch; color: var(--zinc); }
+.notfound__actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: clamp(32px, 5vh, 56px); }
 
 /* ---------- sections ---------- */
 .section { padding-top: clamp(88px, 11vw, 168px); }
