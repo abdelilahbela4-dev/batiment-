@@ -68,7 +68,7 @@ const FAVICON = `data:image/svg+xml,${encodeURIComponent(
 
 function head(ctx, title, desc, extra = '') {
   const { lang, t } = ctx;
-  const canonical = `https://amconstruction.vercel.app${ctx.url(ctx.page)}`;
+  const canonical = `__SITE_URL__${ctx.url(ctx.page)}`;
   return `<!doctype html>
 <html lang="${lang}">
 <head>
@@ -184,7 +184,7 @@ function footer(ctx) {
     </div>
   </div>
 </footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="__SUPABASE_JS__"></script>
 <script src="/assets/main.js" defer></script>
 </body>
 </html>`;
@@ -194,7 +194,7 @@ const jsonLd = (ctx) => `<script type="application/ld+json">${JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'GeneralContractor',
   name: ctx.t.siteName,
-  url: 'https://amconstruction.vercel.app',
+  url: '__SITE_URL__',
   telephone: ctx.t.contact.phoneHref,
   email: ctx.t.contact.email,
   founder: { '@type': 'Person', name: ctx.t.home.atelier.name },
@@ -266,7 +266,7 @@ function devisOverlay(ctx) {
       <div class="dov-tiles" data-dov-tiles>${tiles}</div>
       <div class="dov-field dov-field--full">
         <label for="dov-desc">${isFr ? 'Description du projet' : 'Project description'}</label>
-        <textarea id="dov-desc" name="dov-desc" rows="4" placeholder="${isFr ? 'Plus vous êtes précis, plus votre devis sera juste et rapide.' : 'The more precise you are, the more accurate and faster your quote will be.'}" data-dov-desc></textarea>
+        <textarea id="dov-desc" name="dov-desc" rows="4" maxlength="2000" placeholder="${isFr ? 'Plus vous êtes précis, plus votre devis sera juste et rapide.' : 'The more precise you are, the more accurate and faster your quote will be.'}" data-dov-desc></textarea>
       </div>
       <p class="dov-error" data-dov-err="type" hidden>${isFr ? 'Choisissez au moins un type de travaux.' : 'Choose at least one type.'}</p>
     </section>
@@ -276,10 +276,11 @@ function devisOverlay(ctx) {
       <h2 class="dov__title">${isFr ? 'Vos informations' : 'Your information'}</h2>
       <p class="dov__sub">${isFr ? 'Pour que nous puissions vous recontacter rapidement.' : 'So we can get back to you quickly.'}</p>
       <div class="dov-grid">
-        <div class="dov-field"><label for="dov-lname">${isFr ? 'Nom' : 'Last name'} <span class="dov-req">*</span></label><input type="text" id="dov-lname" name="dov-lname" autocomplete="family-name" required><p class="dov-error" data-dov-err="lname" hidden></p></div>
-        <div class="dov-field"><label for="dov-fname">${isFr ? 'Prénom' : 'First name'} <span class="dov-req">*</span></label><input type="text" id="dov-fname" name="dov-fname" autocomplete="given-name" required><p class="dov-error" data-dov-err="fname" hidden></p></div>
-        <div class="dov-field"><label for="dov-email">E-mail <span class="dov-req">*</span></label><input type="email" id="dov-email" name="dov-email" autocomplete="email" placeholder="${isFr ? 'claire@exemple.fr' : 'claire@example.com'}" required><p class="dov-error" data-dov-err="email" hidden></p></div>
-        <div class="dov-field"><label for="dov-phone">${isFr ? 'Téléphone / WhatsApp' : 'Phone / WhatsApp'} <span class="dov-req">*</span></label><input type="tel" id="dov-phone" name="dov-phone" autocomplete="tel" placeholder="06 12 34 56 78" inputmode="tel" required><p class="dov-error" data-dov-err="phone" hidden></p></div>
+        <div class="dov-field"><label for="dov-lname">${isFr ? 'Nom' : 'Last name'} <span class="dov-req">*</span></label><input type="text" id="dov-lname" name="dov-lname" autocomplete="family-name" maxlength="100" required><p class="dov-error" data-dov-err="lname" hidden></p></div>
+        <div class="dov-field"><label for="dov-fname">${isFr ? 'Prénom' : 'First name'} <span class="dov-req">*</span></label><input type="text" id="dov-fname" name="dov-fname" autocomplete="given-name" maxlength="100" required><p class="dov-error" data-dov-err="fname" hidden></p></div>
+        <div class="dov-field"><label for="dov-email">E-mail <span class="dov-req">*</span></label><input type="email" id="dov-email" name="dov-email" autocomplete="email" maxlength="254" placeholder="${isFr ? 'claire@exemple.fr' : 'claire@example.com'}" required><p class="dov-error" data-dov-err="email" hidden></p></div>
+        <div class="dov-field"><label for="dov-phone">${isFr ? 'Téléphone / WhatsApp' : 'Phone / WhatsApp'} <span class="dov-req">*</span></label><input type="tel" id="dov-phone" name="dov-phone" autocomplete="tel" maxlength="30" placeholder="06 12 34 56 78" inputmode="tel" required><p class="dov-error" data-dov-err="phone" hidden></p></div>
+        <div class="dov-trap" aria-hidden="true"><label for="dov-website">Site web</label><input type="text" id="dov-website" name="dov-website" tabindex="-1" autocomplete="off" data-dov-trap></div>
       </div>
       <fieldset class="dov-contact-pref">
         <legend>${isFr ? 'Je préfère être recontacté par :' : 'I prefer to be contacted by:'}</legend>
@@ -314,9 +315,9 @@ function devisOverlay(ctx) {
       <h2 class="dov__title">${isFr ? 'Adresse du chantier' : 'Site address'}</h2>
       <p class="dov__sub">${isFr ? 'Pour situer votre projet et planifier la visite technique.' : 'To locate your project and plan the technical visit.'}</p>
       <div class="dov-grid">
-        <div class="dov-field dov-field--full"><label for="dov-address">${isFr ? 'Adresse' : 'Address'}</label><input type="text" id="dov-address" name="dov-address" autocomplete="street-address" placeholder="${isFr ? '14 rue des Artisans' : '14 rue des Artisans'}"></div>
-        <div class="dov-field"><label for="dov-zip">${isFr ? 'Code postal' : 'Postal code'} <span class="dov-req">*</span></label><input type="text" id="dov-zip" name="dov-zip" autocomplete="postal-code" placeholder="90000" inputmode="numeric" pattern="\\d{5}" required><p class="dov-error" data-dov-err="zip" hidden></p></div>
-        <div class="dov-field"><label for="dov-city">${isFr ? 'Ville' : 'City'} <span class="dov-req">*</span></label><input type="text" id="dov-city" name="dov-city" autocomplete="address-level2" placeholder="${isFr ? 'Belfort' : 'Belfort'}" required><p class="dov-error" data-dov-err="city" hidden></p></div>
+        <div class="dov-field dov-field--full"><label for="dov-address">${isFr ? 'Adresse' : 'Address'}</label><input type="text" id="dov-address" name="dov-address" autocomplete="street-address" maxlength="200" placeholder="${isFr ? '14 rue des Artisans' : '14 rue des Artisans'}"></div>
+        <div class="dov-field"><label for="dov-zip">${isFr ? 'Code postal' : 'Postal code'} <span class="dov-req">*</span></label><input type="text" id="dov-zip" name="dov-zip" autocomplete="postal-code" maxlength="10" placeholder="90000" inputmode="numeric" pattern="\\d{5}" required><p class="dov-error" data-dov-err="zip" hidden></p></div>
+        <div class="dov-field"><label for="dov-city">${isFr ? 'Ville' : 'City'} <span class="dov-req">*</span></label><input type="text" id="dov-city" name="dov-city" autocomplete="address-level2" maxlength="100" placeholder="${isFr ? 'Belfort' : 'Belfort'}" required><p class="dov-error" data-dov-err="city" hidden></p></div>
       </div>
       <p class="dov-zone-hint">${icon('pin')} ${isFr ? 'Nous intervenons dans le Territoire de Belfort et le Nord Franche-Comté.' : 'We operate in Territoire de Belfort and Nord Franche-Comté.'}</p>
     </section>
@@ -349,6 +350,7 @@ function devisOverlay(ctx) {
       <span>${icon('check')} ${isFr ? 'Visite technique gratuite' : 'Free technical visit'}</span>
     </div>
     <div class="dov-confirm__ref" data-dov-ref></div>
+    <p class="dov-confirm__warn" data-dov-photo-warn hidden></p>
     <div class="dov-confirm__actions">
       <button class="btn btn--primary" data-dov-close type="button">${isFr ? 'Retour au site' : 'Back to site'}</button>
     </div>

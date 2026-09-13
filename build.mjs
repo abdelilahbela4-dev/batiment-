@@ -1,6 +1,6 @@
-// DESTPEC Bâtiment — static site generator
+// AM Construction — static site generator
 // Renders src/content.js through src/pages.js + src/template.js
-// into dist/{fr,en}/... with clean-URL index.html files.
+// into dist/fr/... with clean-URL index.html files.
 
 import { mkdir, writeFile, readFile, copyFile, cp, rm } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
@@ -24,8 +24,36 @@ if (existsSync(envPath)) {
     if (m) env[m[1]] = m[2];
   }
 }
-const SUPABASE_URL = process.env.SUPABASE_URL || env.SUPABASE_URL || '__SUPABASE_URL__';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '__SUPABASE_ANON_KEY__';
+const SUPABASE_URL = process.env.SUPABASE_URL || env.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '';
+
+// A site built without its database settings still looked like it worked: the
+// quote form showed a confirmation and a reference number, and saved nothing.
+// Stop the build instead, so the mistake is caught at deploy time rather than by
+// a customer whose request vanished. ALLOW_OFFLINE_BUILD=1 is only for previewing
+// the design on a machine that has no keys.
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  if (process.env.ALLOW_OFFLINE_BUILD === '1') {
+    console.warn('\n  ALLOW_OFFLINE_BUILD=1: building without Supabase. The quote form will refuse to send.\n');
+  } else {
+    console.error('\n  Build stopped: SUPABASE_URL and SUPABASE_ANON_KEY are required.');
+    console.error('  Without them every quote request would be lost silently.');
+    console.error('  Set them in .env locally or in the Vercel project settings.\n');
+    process.exit(1);
+  }
+}
+
+// Public address of the site. One place to change when the custom domain arrives.
+const SITE_URL = (process.env.SITE_URL || env.SITE_URL || 'https://amconstruction.vercel.app').replace(/\/+$/, '');
+
+// The Supabase browser library is served from this site, pinned by package-lock,
+// rather than pulled from a CDN at a floating version: it runs on the page where
+// customers type their personal details.
+// The version is part of the file name, so the file can be cached forever and a
+// library upgrade still reaches every visitor.
+const SUPABASE_JS_DIR = join(root, 'node_modules', '@supabase', 'supabase-js');
+const SUPABASE_JS_VERSION = JSON.parse(await readFile(join(SUPABASE_JS_DIR, 'package.json'), 'utf8')).version;
+const SUPABASE_JS_PATH = `/assets/vendor/supabase-${SUPABASE_JS_VERSION}.js`;
 
 export const PAGES = [
   { key: 'home',  slug: { fr: '' } },
@@ -38,6 +66,16 @@ export function urlFor(lang, key) {
   return slug ? `/${lang}/${slug}/` : `/${lang}/`;
 }
 
+// Every rendered page goes through here, including the 404, which also carries
+// the quote form. It used to skip this step, so its form had no database settings.
+function finalize(html) {
+  return html
+    .replace(/__SUPABASE_URL__/g, SUPABASE_URL)
+    .replace(/__SUPABASE_ANON_KEY__/g, SUPABASE_ANON_KEY)
+    .replace(/__SUPABASE_JS__/g, SUPABASE_JS_PATH)
+    .replace(/__SITE_URL__/g, SITE_URL);
+}
+
 async function build() {
   await rm(dist, { recursive: true, force: true });
   let count = 0;
@@ -46,9 +84,7 @@ async function build() {
     const t = content[lang];
     for (const page of PAGES) {
       const ctx = { lang, t, page: page.key, url: (key) => urlFor(lang, key) };
-      let html = renderPage(page.key, ctx);
-      html = html.replace(/__SUPABASE_URL__/g, SUPABASE_URL);
-      html = html.replace(/__SUPABASE_ANON_KEY__/g, SUPABASE_ANON_KEY);
+      const html = finalize(renderPage(page.key, ctx));
       const outDir = page.slug[lang] ? join(dist, lang, page.slug[lang]) : join(dist, lang);
       await mkdir(outDir, { recursive: true });
       await writeFile(join(outDir, 'index.html'), html, 'utf8');
@@ -60,6 +96,8 @@ async function build() {
   await mkdir(join(dist, 'assets'), { recursive: true });
   await copyFile(join(root, 'src', 'styles.css'), join(dist, 'assets', 'styles.css'));
   await copyFile(join(root, 'src', 'main.js'), join(dist, 'assets', 'main.js'));
+  await mkdir(join(dist, 'assets', 'vendor'), { recursive: true });
+  await copyFile(join(SUPABASE_JS_DIR, 'dist', 'umd', 'supabase.js'), join(dist, SUPABASE_JS_PATH));
 
   // Media (frame sequence cut from the source orbit), nested dirs included
   await cp(join(root, 'src', 'media'), join(dist, 'assets', 'media'), { recursive: true });
@@ -93,7 +131,29 @@ async function build() {
   </div>
 </section>`,
   });
-  await writeFile(join(dist, '404.html'), notFound, 'utf8');
+  await writeFile(join(dist, '404.html'), finalize(notFound), 'utf8');
+
+  // Search engines: what may be indexed, and where the pages are.
+  const pageUrls = LANGS.flatMap((lang) => PAGES.map((page) => `${SITE_URL}${urlFor(lang, page.key)}`));
+  await writeFile(
+    join(dist, 'robots.txt'),
+    `User-agent: *
+Disallow: /admin
+Disallow: /api
+
+Sitemap: ${SITE_URL}/sitemap.xml
+`,
+    'utf8',
+  );
+  await writeFile(
+    join(dist, 'sitemap.xml'),
+    `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pageUrls.map((u) => `  <url><loc>${u}</loc></url>`).join('\n')}
+</urlset>
+`,
+    'utf8',
+  );
 
   // Root redirect to /fr/
   await writeFile(

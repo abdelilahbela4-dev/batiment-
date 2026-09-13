@@ -552,11 +552,16 @@ document.querySelectorAll('[data-year]').forEach((el) => {
       <div class="dov-recap__value">${value}</div>
     </div>`;
 
+    // Everything the visitor typed is escaped before it goes into the summary:
+    // it is inserted as HTML, and a name or description containing markup would
+    // otherwise be rendered rather than shown as text.
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
     recapEl.innerHTML = [
-      block(isFr ? 'Travaux' : 'Work', state.types.map(t => typeLabels[t] || t).join(', ') + (state.desc ? `<br><em>"${state.desc.substring(0, 80)}${state.desc.length > 80 ? '…' : ''}"</em>` : ''), 0),
-      block(isFr ? 'Contact' : 'Contact', `${state.fname} ${state.lname}<br>${state.email}<br>${state.phone}<br><em>${isFr ? 'Préférence :' : 'Preference:'} ${prefLabels[state.pref]}</em>`, 1),
-      block(isFr ? 'Projet' : 'Project', `${state.delay ? (isFr ? 'Délai : ' : 'Timeline: ') + (delayLabels[state.delay] || '–') : ''}${state.photos.length ? `${state.delay ? ' · ' : ''}${state.photos.length} photo${state.photos.length > 1 ? 's' : ''}` : ''}` || (isFr ? 'Non precise' : 'Not specified'), 2),
-      block(isFr ? 'Adresse' : 'Address', `${state.address ? state.address + ', ' : ''}${state.zip} ${state.city}`, 3),
+      block(isFr ? 'Travaux' : 'Work', state.types.map(t => esc(typeLabels[t] || t)).join(', ') + (state.desc ? `<br><em>"${esc(state.desc.substring(0, 80))}${state.desc.length > 80 ? '…' : ''}"</em>` : ''), 0),
+      block(isFr ? 'Contact' : 'Contact', `${esc(state.fname)} ${esc(state.lname)}<br>${esc(state.email)}<br>${esc(state.phone)}<br><em>${isFr ? 'Préférence :' : 'Preference:'} ${esc(prefLabels[state.pref])}</em>`, 1),
+      block(isFr ? 'Projet' : 'Project', `${state.delay ? (isFr ? 'Délai : ' : 'Timeline: ') + esc(delayLabels[state.delay] || '–') : ''}${state.photos.length ? `${state.delay ? ' · ' : ''}${state.photos.length} photo${state.photos.length > 1 ? 's' : ''}` : ''}` || (isFr ? 'Non précisé' : 'Not specified'), 2),
+      block(isFr ? 'Adresse' : 'Address', `${state.address ? esc(state.address) + ', ' : ''}${esc(state.zip)} ${esc(state.city)}`, 3),
     ].join('');
 
     recapEl.querySelectorAll('[data-dov-goto]').forEach(b => {
@@ -568,25 +573,30 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   async function submitToSupabase() {
     readStep0(); readStep1(); readStep2(); readStep3();
 
+    // No database means nothing can be saved. This used to report success with a
+    // made-up reference, so a misconfigured deploy lost every request silently.
+    if (!sb) return { ok: false };
+
     // Upload photos to Supabase Storage
     let photoUrls = [];
-    if (sb && state.photos.length) {
-      for (const file of state.photos) {
-        const name = `${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`;
-        const { data, error } = await sb.storage.from('photos').upload(name, file);
-        if (!error && data) {
-          const { data: urlData } = sb.storage.from('photos').getPublicUrl(data.path);
-          photoUrls.push(urlData.publicUrl);
-        }
+    let photosFailed = 0;
+    for (const file of state.photos) {
+      // The stored name is generated rather than taken from the visitor's file:
+      // accents, spaces or slashes in a file name made storage reject the upload.
+      const ext = (file.name.match(/\.([a-z0-9]{1,5})$/i) || [, 'jpg'])[1].toLowerCase();
+      const name = `${crypto.randomUUID()}.${ext}`;
+      const { data, error } = await sb.storage.from('photos').upload(name, file, { contentType: file.type || undefined });
+      if (!error && data) {
+        const { data: urlData } = sb.storage.from('photos').getPublicUrl(data.path);
+        photoUrls.push(urlData.publicUrl);
+      } else {
+        photosFailed += 1;
       }
     }
 
-    if (!sb) {
-      return { ok: true, ref: `D-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}` };
-    }
-
-    // Generate client UUID client-side (anon RLS = insert-only, no select)
+    // Generated here because anonymous visitors can insert but not read back.
     const clientId = crypto.randomUUID();
+    const demandeId = crypto.randomUUID();
 
     const { error: clientErr } = await sb.from('clients').insert({
       id: clientId,
@@ -600,9 +610,10 @@ document.querySelectorAll('[data-year]').forEach((el) => {
       ville: state.city,
     });
 
-    if (clientErr) return { ok: false, error: clientErr.message };
+    if (clientErr) return { ok: false, error: clientErr };
 
     const { error: demandeErr } = await sb.from('demandes').insert({
+      id: demandeId,
       client_id: clientId,
       type_travaux: state.types,
       description: state.desc || null,
@@ -610,28 +621,52 @@ document.querySelectorAll('[data-year]').forEach((el) => {
       photos: photoUrls,
     });
 
-    if (demandeErr) return { ok: false, error: demandeErr.message };
+    if (demandeErr) return { ok: false, error: demandeErr };
 
-    return { ok: true, ref: `D-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}` };
+    // The reference is taken from the saved request, so Aziz can find it when a
+    // customer quotes it. It used to be a random number stored nowhere.
+    return { ok: true, ref: `D-${demandeId.slice(0, 8).toUpperCase()}`, photosFailed };
   }
 
   const submitLabel = btnSubmit.innerHTML;
   btnSubmit.addEventListener('click', async () => {
     if (!validateStep(state.step)) return;
+
+    // Hidden field no person can see or reach. A bot that fills every input
+    // gets a normal-looking confirmation and nothing is sent.
+    const trap = overlay.querySelector('[data-dov-trap]');
+    if (trap && trap.value) {
+      confirmEl.hidden = false;
+      return;
+    }
+
     btnSubmit.disabled = true;
     btnSubmit.textContent = isFr ? 'Envoi en cours…' : 'Sending…';
 
+    const genericError = isFr ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.';
     try {
       const result = await submitToSupabase();
       if (result.ok) {
         const refEl = overlay.querySelector('[data-dov-ref]');
         if (refEl) refEl.textContent = `${isFr ? 'Référence' : 'Reference'} : ${result.ref}`;
+        const warnEl = overlay.querySelector('[data-dov-photo-warn]');
+        if (warnEl && result.photosFailed) {
+          warnEl.textContent = isFr
+            ? `${result.photosFailed} photo${result.photosFailed > 1 ? 's n’ont' : ' n’a'} pas pu être envoyée${result.photosFailed > 1 ? 's' : ''}. Votre demande est bien enregistrée : vous pourrez nous les transmettre lors de notre prise de contact.`
+            : `${result.photosFailed} photo${result.photosFailed > 1 ? 's' : ''} could not be sent. Your request is saved: you can send them when we get in touch.`;
+          warnEl.hidden = false;
+        }
         confirmEl.hidden = false;
       } else {
-        alert(isFr ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.');
+        // P0001 is the database's own anti-abuse refusal, already worded for a
+        // visitor. Anything else stays generic so no internal detail leaks.
+        const message = result.error && result.error.code === 'P0001' && result.error.message
+          ? result.error.message
+          : genericError;
+        alert(message);
       }
     } catch (e) {
-      alert(isFr ? 'Une erreur est survenue. Veuillez réessayer.' : 'An error occurred. Please try again.');
+      alert(genericError);
     }
     btnSubmit.disabled = false;
     btnSubmit.innerHTML = submitLabel;

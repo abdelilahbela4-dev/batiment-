@@ -328,6 +328,12 @@ main { padding-top: var(--nav-h); }
 .stage__cue.is-gone { opacity: 0; }
 
 
+/* ---------- quote form: bot trap and photo warning ---------- */
+/* Off-screen rather than display:none, which some bots detect and skip. It is
+   also hidden from screen readers (aria-hidden) and unreachable by Tab. */
+.dov-trap { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.dov-confirm__warn { margin-top: 14px; max-width: 46ch; font-size: 14px; line-height: 1.5; color: var(--zinc); }
+
 /* ---------- 404 --------------------------------------------------------- */
 .notfound { padding-top: calc(var(--nav-h) + clamp(80px, 14vh, 180px)); padding-bottom: clamp(80px, 14vh, 180px); }
 .notfound__title { margin-top: 18px; max-width: 16ch; }

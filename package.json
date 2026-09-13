@@ -1,9 +1,9 @@
 {
-  "name": "destpec-batiment",
+  "name": "am-construction-site",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Site vitrine bilingue (FR/EN) pour DESTPEC Bâtiment, construction et rénovation à Étampes.",
+  "description": "Site vitrine d'AM Construction, construction et rénovation à Belfort.",
   "scripts": {
     "build": "node build.mjs",
     "serve": "node serve.mjs",
@@ -11,5 +11,8 @@
   },
   "devDependencies": {
     "puppeteer-core": "^23.11.1"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.116.0"
   }
 }

@@ -39,7 +39,7 @@ export const content = {
       },
       devis: {
         title: 'Demander votre devis · AM Construction',
-        desc: 'Décrivez votre projet en 5 étapes : type de travaux, coordonnées, budget, adresse. Visite technique gratuite, réponse sous 48 h.',
+        desc: 'Décrivez votre projet en 5 étapes : type de travaux, coordonnées, délai et photos, adresse. Visite technique gratuite, réponse sous 48 h.',
       },
     },
 
