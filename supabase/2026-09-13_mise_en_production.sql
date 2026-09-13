@@ -78,6 +78,11 @@ create table if not exists private.anti_abus_journal (
   type text not null,
   created_at timestamptz not null default now()
 );
+-- Trois verrous : le schéma « private » n'est pas publié sur Internet, aucun droit
+-- n'est accordé aux visiteurs ni aux comptes connectés, et la sécurité par ligne
+-- est activée sans aucune règle d'accès. Les fonctions anti-abus qui écrivent dans
+-- ce journal appartiennent au propriétaire de la table et ne sont pas concernées.
+alter table private.anti_abus_journal enable row level security;
 revoke all on private.anti_abus_journal from public, anon, authenticated;
 create index if not exists anti_abus_journal_type_date on private.anti_abus_journal (type, created_at);
 create index if not exists anti_abus_journal_cle_date on private.anti_abus_journal (cle, created_at);
