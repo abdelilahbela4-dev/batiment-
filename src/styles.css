@@ -332,6 +332,7 @@ main { padding-top: var(--nav-h); }
 /* Off-screen rather than display:none, which some bots detect and skip. It is
    also hidden from screen readers (aria-hidden) and unreachable by Tab. */
 .dov-trap { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.dov-upload__msg { margin-top: 8px; font-size: 13px; line-height: 1.45; color: var(--sanguine, #8C5530); }
 .dov-confirm__warn { margin-top: 14px; max-width: 46ch; font-size: 14px; line-height: 1.5; color: var(--zinc); }
 
 /* ---------- 404 --------------------------------------------------------- */

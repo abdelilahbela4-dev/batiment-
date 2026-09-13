@@ -496,25 +496,127 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   function renderEstimate() {}
 
   /* -- photos -- */
+  // Photos are made lighter in the visitor's browser before they are sent, so a
+  // 10 MB phone picture never travels over mobile data: it leaves as a JPEG of
+  // at most 2000 px on its longest side, typically a few hundred KB. That is
+  // still enough to zoom in on a crack or a roof tile. Re-encoding also drops
+  // the file's hidden metadata, including the GPS position of the customer's home.
+  const MAX_PHOTOS = 6;
+  // Accepted as picked, before compression. The old limit of 8 MB silently
+  // dropped the photos of many recent phones (48-50 megapixel cameras).
+  const PHOTO_PICK_MAX = 30 * 1024 * 1024;
+  const PHOTO_MAX_EDGE = 2000;
+  const PHOTO_QUALITY = 0.82;
+
   const uploadInput = overlay.querySelector('[data-dov-upload-input]');
   const uploadBtn = overlay.querySelector('[data-dov-upload-btn]');
   const uploadList = overlay.querySelector('[data-dov-upload-list]');
+  const uploadMsg = overlay.querySelector('[data-dov-upload-msg]');
+
+  // Adds picked or dropped files, and says why any were left out instead of
+  // ignoring them without a word.
+  function addPhotos(fileList) {
+    const picked = [...fileList];
+    const images = picked.filter((f) => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name));
+    const small = images.filter((f) => f.size <= PHOTO_PICK_MAX);
+    const room = Math.max(0, MAX_PHOTOS - state.photos.length);
+    const added = small.slice(0, room);
+    state.photos = [...state.photos, ...added];
+
+    const notes = [];
+    if (picked.length > images.length) notes.push(isFr ? 'seules les images sont acceptées' : 'only images are accepted');
+    if (images.length > small.length) notes.push(isFr ? 'une photo dépasse 30 Mo' : 'a photo is over 30 MB');
+    if (small.length > added.length) notes.push(isFr ? `${MAX_PHOTOS} photos au maximum` : `${MAX_PHOTOS} photos at most`);
+    if (uploadMsg) {
+      uploadMsg.textContent = notes.length
+        ? `${picked.length - added.length} ${isFr ? 'fichier(s) non ajouté(s)' : 'file(s) not added'} : ${notes.join(', ')}.`
+        : '';
+      uploadMsg.hidden = notes.length === 0;
+    }
+    renderPhotos();
+  }
+
   if (uploadBtn && uploadInput) {
     uploadBtn.addEventListener('click', () => uploadInput.click());
     uploadInput.addEventListener('change', () => {
-      const files = [...uploadInput.files].filter(f => f.type.startsWith('image/') && f.size <= 8 * 1024 * 1024);
-      state.photos = [...state.photos, ...files].slice(0, 6);
+      addPhotos(uploadInput.files);
       uploadInput.value = '';
-      renderPhotos();
     });
   }
+
+  // Decoded with the orientation phones record in the file applied, so an
+  // upright photo stays upright once re-encoded.
+  async function decodeImage(file) {
+    if ('createImageBitmap' in window) {
+      try {
+        const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+        return { source: bitmap, width: bitmap.width, height: bitmap.height, release: () => bitmap.close && bitmap.close() };
+      } catch (e) { /* older engine or unsupported option: try the element path */ }
+    }
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = reject;
+        el.src = url;
+      });
+      return { source: img, width: img.naturalWidth, height: img.naturalHeight, release: () => URL.revokeObjectURL(url) };
+    } catch (e) {
+      URL.revokeObjectURL(url);
+      throw e;
+    }
+  }
+
+  // Returns a lighter JPEG, or the original file when the browser cannot read
+  // or re-encode it (HEIC on desktop Chrome, for instance). A photo is never
+  // lost because compression failed.
+  async function compressPhoto(file) {
+    let decoded;
+    try {
+      decoded = await decodeImage(file);
+    } catch (e) {
+      return file;
+    }
+    try {
+      const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(decoded.width, decoded.height));
+      const width = Math.max(1, Math.round(decoded.width * scale));
+      const height = Math.max(1, Math.round(decoded.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      // JPEG has no transparency: a transparent screenshot would turn black.
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(decoded.source, 0, 0, width, height);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', PHOTO_QUALITY));
+      canvas.width = 0;
+      canvas.height = 0;
+      if (!blob || blob.size === 0) return file;
+      return new File([blob], 'photo.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+    } catch (e) {
+      return file;
+    } finally {
+      decoded.release();
+    }
+  }
+
+  let previewUrls = [];
   function renderPhotos() {
     if (!uploadList) return;
+    // Previews are rebuilt on every change; release the previous ones.
+    previewUrls.forEach((u) => URL.revokeObjectURL(u));
+    previewUrls = [];
     uploadList.innerHTML = '';
     state.photos.forEach((file, i) => {
       const li = document.createElement('li');
       const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
+      const url = URL.createObjectURL(file);
+      previewUrls.push(url);
+      img.src = url;
       img.alt = file.name;
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -532,9 +634,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('is-drag'));
     uploadArea.addEventListener('drop', (e) => {
       e.preventDefault(); uploadArea.classList.remove('is-drag');
-      const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/') && f.size <= 8 * 1024 * 1024);
-      state.photos = [...state.photos, ...files].slice(0, 6);
-      renderPhotos();
+      addPhotos(e.dataTransfer.files);
     });
   }
 
@@ -580,7 +680,14 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     // Upload photos to Supabase Storage
     let photoUrls = [];
     let photosFailed = 0;
-    for (const file of state.photos) {
+    const total = state.photos.length;
+    for (const [index, original] of state.photos.entries()) {
+      // Compressing six large photos takes a few seconds on a phone: say so, so
+      // the button does not look stuck.
+      btnSubmit.textContent = isFr
+        ? `Préparation des photos (${index + 1}/${total})…`
+        : `Preparing photos (${index + 1}/${total})…`;
+      const file = await compressPhoto(original);
       // The stored name is generated rather than taken from the visitor's file:
       // accents, spaces or slashes in a file name made storage reject the upload.
       const ext = (file.name.match(/\.([a-z0-9]{1,5})$/i) || [, 'jpg'])[1].toLowerCase();
@@ -593,6 +700,8 @@ document.querySelectorAll('[data-year]').forEach((el) => {
         photosFailed += 1;
       }
     }
+
+    btnSubmit.textContent = isFr ? 'Envoi en cours…' : 'Sending…';
 
     // Generated here because anonymous visitors can insert but not read back.
     const clientId = crypto.randomUUID();

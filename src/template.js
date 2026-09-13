@@ -303,7 +303,8 @@ function devisOverlay(ctx) {
             <div class="dov-upload" data-dov-upload>
               <input type="file" accept="image/*" multiple hidden data-dov-upload-input>
               <button type="button" class="dov-upload__btn" data-dov-upload-btn>${icon('camera')} ${isFr ? 'Ajouter des photos' : 'Add photos'}</button>
-              <p class="dov-upload__hint">${isFr ? 'Glissez-déposez ou cliquez. Jusqu\'à 6 photos, 8 Mo chacune.' : 'Drag & drop or click. Up to 6 photos, 8 MB each.'}</p>
+              <p class="dov-upload__hint">${isFr ? 'Glissez-déposez ou cliquez. Jusqu’à 6 photos, allégées automatiquement avant l’envoi.' : 'Drag & drop or click. Up to 6 photos, made lighter automatically before sending.'}</p>
+              <p class="dov-upload__msg" data-dov-upload-msg role="status" hidden></p>
               <ul class="dov-upload__list" data-dov-upload-list></ul>
             </div>
           </div>
