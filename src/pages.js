@@ -135,7 +135,7 @@ function homePage(ctx) {
          data-seq-still-mobile="/frames/still/final-mobile.webp">
   <div class="stage__viewport">
     <picture>
-      <source media="(max-width: 860px)" srcset="/frames/still/final-mobile.webp" width="540" height="960">
+      <source media="(max-width: 860px)" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" width="1" height="1">
       <img class="stage__still" src="/frames/still/final-desktop.webp" alt="${h.hero.seqAlt}" fetchpriority="high" width="1600" height="900">
     </picture>
     <canvas class="stage__canvas" data-seq-canvas aria-hidden="true"></canvas>

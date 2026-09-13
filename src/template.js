@@ -3,18 +3,33 @@
 // « Lumière du jour » type system:
 //   Newsreader — display serif with a true italic (titles, quotes, key figures)
 //   Archivo — text and interface; its expanded width sets the 12 px title-block labels
-const FONTS_URL =
-  'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..700&family=Newsreader:ital,opsz,wght@0,6..72,200..600;1,6..72,200..600&display=swap';
+// Both are served from this site (@font-face at the top of styles.css).
 
 const MEDIA = '/assets/media';
 
 // Local photography, exported at 960 and 1800 px wide (src/media/realisations, src/media/atelier).
+//
+// WebP first, in four widths, so a phone takes the 720 px file instead of the
+// 960 px JPEG it used to download (maison-bordeaux: 52 KB instead of 127 KB).
+// Quality 75 was chosen by measurement: closer to the 1800 px master than the
+// JPEGs it replaces. The JPEGs stay as the fallback for browsers without WebP.
+// Widths above the photo's own size are not generated (maison-crepuscule is
+// 1024 px), so the list stops at the natural width - it must match the files in
+// src/media, produced from the -1800.jpg masters.
+//
+// The <picture> wrapper is display:contents (.pic in styles.css): the photo
+// frames size their <img> with height:100%, which would otherwise resolve
+// against the wrapper instead of the frame and change the layout.
+const WEBP_WIDTHS = [720, 960, 1400, 1800];
+
 export function pic(folder, name, { alt = '', cls = '', w, h, sizes = '100vw', eager = false } = {}) {
   const small = `${MEDIA}/${folder}/${name}-960.jpg`;
   const large = `${MEDIA}/${folder}/${name}-1800.jpg`;
-  return `<img src="${large}" srcset="${small} 960w, ${large} ${Math.min(w, 1800)}w" sizes="${sizes}" alt="${alt}"${cls ? ` class="${cls}"` : ''} width="${w}" height="${h}"${
-    eager ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"'
-  }>`;
+  const natural = Math.min(w, 1800);
+  const webpWidths = [...WEBP_WIDTHS.filter((x) => x < natural), natural];
+  const webpSrcset = webpWidths.map((x) => `${MEDIA}/${folder}/${name}-${x}.webp ${x}w`).join(', ');
+  const loading = eager ? ' fetchpriority="high"' : ' loading="lazy" decoding="async"';
+  return `<picture class="pic"><source type="image/webp" srcset="${webpSrcset}" sizes="${sizes}"><img src="${large}" srcset="${small} 960w, ${large} ${natural}w" sizes="${sizes}" alt="${alt}"${cls ? ` class="${cls}"` : ''} width="${w}" height="${h}"${loading}></picture>`;
 }
 
 // Inline SVG icon set: 1.5px stroke, round caps (reference mockup DNA).
@@ -85,13 +100,11 @@ function head(ctx, title, desc, extra = '') {
 <meta property="og:locale" content="fr_FR">
 <meta name="theme-color" content="#EDEBE6">
 <link rel="icon" href="${FAVICON}">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="${FONTS_URL}">
+<link rel="preload" as="font" type="font/woff2" href="/assets/media/fonts/newsreader-300-400-v26.woff2" crossorigin>
 <link rel="stylesheet" href="/assets/styles.css">
 ${ctx.page === 'home' ? `<link rel="preload" as="image" href="/frames/desktop/frame_0001.webp" media="(min-width: 861px)">
 <link rel="preload" as="image" href="/frames/desktop/frame_0002.webp" media="(min-width: 861px)">
-<link rel="preload" as="image" href="/frames/still/hero-avant.webp" media="(max-width: 860px)">` : ''}
+<link rel="preload" as="image" href="/frames/still/hero-avant.webp" media="(max-width: 860px)" fetchpriority="high">` : ''}
 ${extra}
 </head>`;
 }
@@ -184,7 +197,6 @@ function footer(ctx) {
     </div>
   </div>
 </footer>
-<script src="__SUPABASE_JS__"></script>
 <script src="/assets/main.js" defer></script>
 </body>
 </html>`;
@@ -362,6 +374,8 @@ function devisOverlay(ctx) {
   lang: t.code,
   supabaseUrl: '__SUPABASE_URL__',
   supabaseKey: '__SUPABASE_ANON_KEY__',
+  // Fetched only when the form opens (main.js), not with every page.
+  supabaseJs: '__SUPABASE_JS__',
   prices: { construction: { low: 1750, high: 2500 }, renovation: { low: 600, high: 950 }, extension: { low: 1400, high: 1900 }, isolation: { low: 90, high: 160 }, amenagement: { low: 700, high: 1300 }, toiture: { low: 80, high: 200 } },
   surface: { construction: { min: 60, max: 300, start: 120 }, renovation: { min: 20, max: 300, start: 100 }, extension: { min: 10, max: 120, start: 35 }, isolation: { min: 40, max: 400, start: 140 }, amenagement: { min: 10, max: 150, start: 40 }, toiture: { min: 40, max: 400, start: 120 } },
   errors: {

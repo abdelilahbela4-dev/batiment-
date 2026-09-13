@@ -358,6 +358,24 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   io.observe(sentinel);
 })();
 
+/* ---------- phone hero: the second photo after the first screen ---------- */
+// The "after" photo is invisible until the visitor scrolls (styles.css), so it
+// is only attached once the page has loaded - or at the first touch or scroll,
+// if that comes sooner - leaving the first screen to the "before" photo.
+(() => {
+  const ab = document.querySelector('.stage__ab');
+  if (!ab) return;
+  const ready = () => {
+    ab.classList.add('is-ready');
+    window.removeEventListener('scroll', ready);
+    window.removeEventListener('touchstart', ready);
+  };
+  if (document.readyState === 'complete') return ready();
+  window.addEventListener('load', ready, { once: true });
+  window.addEventListener('scroll', ready, { passive: true });
+  window.addEventListener('touchstart', ready, { passive: true });
+})();
+
 /* ---------- devis overlay ---------- */
 (() => {
   const overlay = document.querySelector('[data-dov]');
@@ -368,9 +386,31 @@ document.querySelectorAll('[data-year]').forEach((el) => {
   const fmtEUR = new Intl.NumberFormat(isFr ? 'fr-FR' : 'en-GB', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
   const fmtNum = new Intl.NumberFormat(isFr ? 'fr-FR' : 'en-GB');
 
-  // Supabase client (only if keys are configured)
-  const sbReady = CFG.supabaseUrl && !CFG.supabaseUrl.startsWith('__');
-  const sb = sbReady ? window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey) : null;
+  // Supabase client (only if keys are configured). Its library is 180 KB of
+  // script that only the form needs, so it is fetched when the form opens
+  // rather than with every page - on a phone it used to hold up the first
+  // screen. A failed fetch resolves to null (reported as "not sent") and is
+  // retried on the next opening.
+  const sbReady = CFG.supabaseUrl && !CFG.supabaseUrl.startsWith('__') && CFG.supabaseJs && !CFG.supabaseJs.startsWith('__');
+  let sbPromise = null;
+  function loadSupabase() {
+    if (!sbReady) return Promise.resolve(null);
+    if (!sbPromise) {
+      sbPromise = new Promise((resolve) => {
+        if (window.supabase) return resolve(window.supabase);
+        const script = document.createElement('script');
+        script.src = CFG.supabaseJs;
+        script.async = true;
+        script.onload = () => resolve(window.supabase || null);
+        script.onerror = () => { script.remove(); resolve(null); };
+        document.head.appendChild(script);
+      }).then((lib) => {
+        if (!lib) { sbPromise = null; return null; }
+        return lib.createClient(CFG.supabaseUrl, CFG.supabaseKey);
+      });
+    }
+    return sbPromise;
+  }
 
   const panel = overlay.querySelector('.dov__panel');
   const body = overlay.querySelector('[data-dov-body]');
@@ -389,6 +429,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
 
   /* -- open / close -- */
   function open() {
+    loadSupabase();
     overlay.hidden = false;
     requestAnimationFrame(() => { overlay.classList.add('is-open'); });
     document.body.style.overflow = 'hidden';
@@ -675,6 +716,7 @@ document.querySelectorAll('[data-year]').forEach((el) => {
 
     // No database means nothing can be saved. This used to report success with a
     // made-up reference, so a misconfigured deploy lost every request silently.
+    const sb = await loadSupabase();
     if (!sb) return { ok: false };
 
     // Upload photos to Supabase Storage
