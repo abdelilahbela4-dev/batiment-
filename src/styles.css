@@ -197,15 +197,11 @@ main { padding-top: var(--nav-h); }
 .icon--xl { width: 28px; height: 28px; }
 
 /* ---------- wordmark ---------- */
-.wm { display: inline-flex; align-items: center; gap: 0.55em; font-size: 22px; color: inherit; }
-.wm__mark { display: grid; width: 2.05em; }
-.wm__mark svg {
-  width: 100%; height: auto; overflow: visible;
-  fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: miter; stroke-linecap: square;
-}
-.wm__am { font: 600 1em/1 var(--sans); font-stretch: 112%; letter-spacing: 0.04em; text-align: center; margin-top: 0.08em; }
-.wm__rule { width: 1px; height: 1.35em; background: currentColor; opacity: 0.35; }
-.wm__name { font: 500 0.5em/1 var(--sans); font-stretch: 125%; letter-spacing: 0.22em; text-transform: uppercase; }
+/* The red house over the name, as on the company's sign. The mark keeps its
+   red everywhere; the name follows the surrounding text colour. */
+.wm { display: inline-grid; justify-items: start; row-gap: 0.2em; font-size: 22px; color: inherit; }
+.wm__mark { display: block; width: 8em; height: auto; }
+.wm__name { font: 700 0.62em/1 var(--sans); font-stretch: 112%; letter-spacing: 0.09em; text-transform: uppercase; white-space: nowrap; }
 
 /* ---------- buttons ---------- */
 .btn {
@@ -245,6 +241,11 @@ main { padding-top: var(--nav-h); }
 }
 .nav:not(.is-solid) { text-shadow: 0 1px 14px rgba(20, 22, 24, 0.25); }
 .nav.is-solid { background: var(--chaux); color: var(--anthracite); box-shadow: inset 0 -1px 0 var(--beton); }
+/* The logo fades with the first scroll over the film (main.js sets --brand),
+   and returns with a short fade when the bar turns solid. */
+.nav:not(.is-solid) .bar__brand { opacity: var(--brand, 1); }
+.nav.is-brand-gone .bar__brand { pointer-events: none; }
+.nav.is-solid .bar__brand { transition: opacity 0.4s var(--ease); }
 .bar__brand { justify-self: start; display: inline-flex; color: inherit; }
 .bar__links { display: flex; gap: 34px; }
 .bar__links a {
@@ -428,6 +429,34 @@ main { padding-top: var(--nav-h); }
 .evening .cart div { border-bottom-color: var(--filet-nuit); }
 .evening .cart div + div { box-shadow: inset 1px 0 0 var(--filet-nuit); }
 
+/* before / after: every stage visible at once, nothing animated between
+   them. Three stages: the finished work across eight parts, the two earlier
+   stages stacked in the other four. Two stages: an equal pair. Always read
+   in the order of the work, before first, on a computer and on a phone. */
+.ba + .ba { margin-top: clamp(96px, 12vw, 176px); }
+.ba__gallery {
+  display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  column-gap: 24px; align-items: start;
+}
+.ba__final { grid-column: 2; grid-row: 1; }
+.ba__earlier { grid-column: 1; grid-row: 1; display: grid; gap: 24px; }
+.ba--pair .ba__gallery { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.ba__shot { display: grid; gap: 10px; }
+.ba__win { position: relative; aspect-ratio: 4 / 3; }
+.ba__tag {
+  position: absolute; left: 12px; bottom: 12px;
+  padding: 7px 10px 6px; background: rgba(247, 246, 243, 0.92); color: var(--anthracite);
+}
+.ba__caption { font-size: 14px; line-height: 1.4; color: var(--zinc); }
+.ba__caption .label { margin-right: 6px; color: var(--anthracite); }
+.ba__cap {
+  display: grid; grid-template-columns: 96px minmax(0, 5fr) minmax(0, 6fr); gap: 12px 24px;
+  align-items: start; margin-top: clamp(24px, 3vw, 40px);
+}
+.ba__n { padding-top: 8px; }
+.ba__title { max-width: 22ch; }
+.ba__body { color: var(--zinc); max-width: 46ch; }
+
 /* savoir-faire: plan to house */
 .savoir__grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 24px clamp(24px, 4vw, 72px); align-items: start; }
 .savoir__list { border-top: 1px solid var(--anthracite); }
@@ -466,7 +495,7 @@ main { padding-top: var(--nav-h); }
 .plan__tb span + span { box-shadow: inset 1px 0 0 var(--beton); }
 
 /* method */
-.steps { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 20px; padding-top: 40px; }
+.steps { position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 20px; padding-top: 40px; }
 .steps::before, .steps::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; }
 .steps::before { background: var(--beton); }
 .steps::after { background: var(--anthracite); transform: scaleX(var(--p, 1)); transform-origin: left; }
@@ -1130,7 +1159,7 @@ output[data-surface-out] { font-family: var(--font-mono); font-weight: 700; colo
   .nav .bar { grid-template-columns: 1fr auto; }
   .bar__nav, .bar__tel, .bar__cta { display: none; }
   .bar__menu { display: inline-flex; }
-  .wm { font-size: 18px; }
+  .wm { font-size: 19px; }
   .action-bar { display: flex; }
   main { padding-bottom: 72px; }
 
@@ -1174,6 +1203,16 @@ output[data-surface-out] { font-family: var(--font-mono); font-weight: 700; colo
   .pair { row-gap: 64px; }
   .evening__text, .evening__win { grid-column: 1 / -1; }
   .evening__win { order: -1; }
+
+  /* before / after on a phone: the earlier stages first - two side by side,
+     or one full width - then the finished work full width underneath. */
+  .ba__gallery, .ba--pair .ba__gallery { grid-template-columns: minmax(0, 1fr); row-gap: 16px; }
+  .ba__final, .ba__earlier { grid-column: 1; grid-row: auto; }
+  .ba__earlier { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 12px; }
+  .ba:not(.ba--pair) .ba__caption { font-size: 13px; }
+  .ba:not(.ba--pair) .ba__tag { left: 8px; bottom: 8px; padding: 5px 7px 4px; font-size: 11px; }
+  .ba__cap { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .ba__n { padding-top: 0; }
 
   .savoir__grid { grid-template-columns: minmax(0, 1fr); }
   .savoir__sticky {

@@ -72,6 +72,42 @@ function planSvg(label) {
         </svg>`;
 }
 
+// Before / after, shown side by side with nothing moving, always in the order
+// the work happened: the earlier stages first, then the finished work, larger.
+function shot(st, k, sizes) {
+  return `<figure class="ba__shot">
+          <div class="win ba__win" data-window>${pic('transformations', st.img, { alt: st.alt, w: 1800, h: 1344, sizes })}
+            <span class="label ba__tag">${st.name}</span>
+          </div>
+          <figcaption class="ba__caption"><span class="label num">${pad(k + 1)}</span> ${st.caption}</figcaption>
+        </figure>`;
+}
+
+function transformation(item, i, total) {
+  const last = item.stages.length - 1;
+  const earlier = item.stages.slice(0, last);
+  // Three stages: a large finished photo and a column of two smaller ones.
+  // Two stages: the pair at equal size.
+  const pair = earlier.length === 1;
+  const bigSizes = pair ? '(min-width: 961px) 46vw, 94vw' : '(min-width: 961px) 62vw, 94vw';
+  const smallSizes = pair ? '(min-width: 961px) 46vw, 94vw' : '(min-width: 961px) 30vw, 46vw';
+  return `<article class="ba${pair ? ' ba--pair' : ''}" id="${item.id}">
+      <div class="ba__gallery">
+        <div class="ba__earlier">
+        ${earlier.map((st, k) => shot(st, k, smallSizes)).join('\n        ')}
+        </div>
+        <div class="ba__final">
+        ${shot(item.stages[last], last, bigSizes)}
+        </div>
+      </div>
+      <div class="ba__cap">
+        <p class="label num ba__n">${pad(i + 1)} / ${pad(total)}</p>
+        <h3 class="h3 ba__title">${item.title}</h3>
+        <p class="ba__body">${item.body}</p>
+      </div>
+    </article>`;
+}
+
 /* ---------- home ---------- */
 
 function homePage(ctx) {
@@ -82,6 +118,9 @@ function homePage(ctx) {
   const pr = h.projects;
   const total = pr.items.length;
   const [p1, p2, p3, evening] = pr.items;
+
+  const tr = h.transformations;
+  const transformations = tr.items.map((it, i) => transformation(it, i, tr.items.length)).join('\n    ');
 
   const s = h.services;
   const services = s.items
@@ -220,6 +259,13 @@ function homePage(ctx) {
       ${cartouche(pr.fields, evening.meta)}
     </div>
     <div class="win evening__win" data-window>${pic('realisations', evening.img, { alt: evening.alt, w: evening.w, h: evening.h, sizes: '(min-width: 960px) 48vw, 94vw' })}</div>
+  </div>
+</section>
+
+<section class="section transfo" id="avant-apres">
+  <div class="wrap">
+    ${sectionHead(tr)}
+    ${transformations}
   </div>
 </section>
 

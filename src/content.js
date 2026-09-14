@@ -13,7 +13,7 @@ export const content = {
     contact: {
       phoneDisplay: PHONE_FR,
       phoneHref: PHONE_INT.replace(/\s/g, ''),
-      email: 'contact@destpec-batiment.fr',
+      email: 'am.construction.contact@gmail.com',
       address: '14 rue des Artisans, 90000 Belfort',
       hours: [
         ['Lundi – vendredi', '8 h – 18 h 30'],
@@ -34,12 +34,12 @@ export const content = {
 
     meta: {
       home: {
-        title: 'AM Construction · Construction & rénovation à Belfort (90)',
-        desc: 'Entreprise générale du bâtiment à Belfort : construction de maisons, rénovation, extension, isolation. Visite technique gratuite, devis détaillé, garantie décennale, certifié RGE.',
+        title: 'AM Construction · Construction & rénovation à Belfort (90) et environs',
+        desc: 'Entreprise générale du bâtiment à Belfort et dans les environs : construction de maisons, rénovation, ouvertures de murs porteurs, piscines maçonnées. Devis détaillé, garantie décennale.',
       },
       devis: {
         title: 'Demander votre devis · AM Construction',
-        desc: 'Décrivez votre projet en 5 étapes : type de travaux, coordonnées, délai et photos, adresse. Visite technique gratuite, réponse sous 48 h.',
+        desc: 'Décrivez votre projet en 5 étapes : type de travaux, coordonnées, délai et photos, adresse. Réponse sous 48 h.',
       },
     },
 
@@ -52,18 +52,18 @@ export const content = {
       mainNav: 'Navigation principale',
       mobileNav: 'Menu',
       allRights: 'Tous droits réservés.',
-      footerTagline: 'Entreprise générale du bâtiment à Belfort. Construction, rénovation, extension et isolation dans le Territoire de Belfort et le Nord Franche-Comté.',
+      footerTagline: 'Entreprise générale du bâtiment basée à Belfort. Construction, rénovation, ouvertures de murs porteurs et piscines, dans le Territoire de Belfort, le Nord Franche-Comté et les environs.',
       footerNavTitle: 'Le site',
       footerContactTitle: 'Nous trouver',
       footerHoursTitle: 'Horaires',
       footerCertsTitle: 'Garanties',
-      certs: ['Certifié RGE Qualibat', 'Garantie décennale AXA', 'Devis détaillé sous 48 h', 'Interlocuteur unique'],
+      certs: ['Garantie décennale', 'Devis détaillé sous 48 h', 'Interlocuteur unique'],
     },
 
     home: {
       hero: {
         title: 'On vous rend la maison <em>finie</em>.',
-        sub: 'Construction, rénovation, extension et isolation à Belfort. Un interlocuteur, un planning contractuel, un budget tenu.',
+        sub: 'Construction, rénovation, ouvertures de murs porteurs et piscines, à Belfort et dans les environs. Un interlocuteur, un planning contractuel, un budget tenu.',
         cta: 'Demander votre devis',
         callPrefix: 'ou appelez le',
         seqAlt: 'La même maison, du crépi fissuré sous ciel gris jusqu’à la façade refaite en plein soleil.',
@@ -135,6 +135,38 @@ export const content = {
         ],
       },
 
+      // Before / after: each stage is a photo in src/media/transformations
+      // (`${img}-960.jpg`, `-1800.jpg` and the WebP widths), listed in order.
+      // The last stage is the finished work and is shown largest; a job can
+      // have two or three stages.
+      transformations: {
+        label: 'Avant / après',
+        count: '2 chantiers',
+        title: 'Ce qu’on ouvre, <em>ce qu’on rend</em>.',
+        sub: 'Deux chantiers photographiés à chaque étape, du premier coup de masse à la remise des clés.',
+        items: [
+          {
+            id: 'ouverture-mur-porteur',
+            title: 'Ouverture d’un mur porteur',
+            body: 'Un mur de refend supprimé pour réunir l’entrée, l’escalier et le séjour. La maison est étayée, une poutre reprend la charge, puis murs, enduits et sols sont remis à neuf.',
+            stages: [
+              { name: 'Avant', caption: 'Démolition du mur, maison étayée', img: 'mur-porteur-avant', alt: 'Mur porteur en cours de démolition dans une maison ancienne, gravats de briques au sol et étais métalliques sous le plafond' },
+              { name: 'Pendant', caption: 'La poutre reprend la charge', img: 'mur-porteur-pendant', alt: 'Grande ouverture dans le mur porteur, poutre en place au-dessus, étais encore installés, escalier visible au fond' },
+              { name: 'Après', caption: 'Un seul volume, ouvert sur l’escalier', img: 'mur-porteur-apres', alt: 'Ouverture terminée entre deux piliers enduits, poutre bois apparente, escalier rénové et carreaux de ciment anciens conservés' },
+            ],
+          },
+          {
+            id: 'piscine',
+            title: 'Piscine maçonnée',
+            body: 'Un bassin monté en blocs à bancher, ferraillé et coulé, puis habillé de margelles claires. Le terrain est repris tout autour : le jardin retrouve sa place, la piscine en plus.',
+            stages: [
+              { name: 'Avant', caption: 'Bassin monté en blocs à bancher', img: 'piscine-avant', alt: 'Chantier de piscine : bassin rectangulaire en blocs à bancher avec armatures métalliques, terre retournée autour, maison en arrière-plan' },
+              { name: 'Après', caption: 'Margelles posées, jardin rendu', img: 'piscine-apres', alt: 'Piscine rectangulaire terminée avec margelles claires, eau bleue, au milieu d’une pelouse neuve entre deux maisons' },
+            ],
+          },
+        ],
+      },
+
       services: {
         label: 'Savoir-faire',
         count: '5 métiers',
@@ -145,23 +177,22 @@ export const content = {
           { n: '01', title: 'Maçonnerie & gros œuvre', body: 'Fondations, dalles, élévation des murs, ouvertures de baies. La base solide de tout le reste, coulée et dressée par nos propres maçons.' },
           { n: '02', title: 'Construction de maisons', body: 'Des maisons individuelles clé en main, du plan d’architecte à la remise des clés. Prix et délai écrits dans le contrat, pas sur un coin de table.' },
           { n: '03', title: 'Rénovation & transformation', body: 'Rénovation complète ou partielle de maisons anciennes : structure, toiture, réseaux, pièces de vie. On respecte la maison, on change tout le reste.' },
-          { n: '04', title: 'Extension & surélévation', body: 'Gagner 30 ou 60 m² sans déménager : extensions bois ou maçonnées, surélévations de pavillons, raccordements propres à l’existant.' },
-          { n: '05', title: 'Isolation & énergie', body: 'Isolation par l’extérieur, combles, menuiseries performantes. Chantiers éligibles MaPrimeRénov’ et CEE, dossiers montés avec vous.' },
+          { n: '04', title: 'Ouvertures sur murs porteurs', body: 'Réunir deux pièces, créer une baie, ouvrir sur l’escalier. La maison est étayée, une poutre reprend la charge, puis tout est remis à neuf autour de l’ouverture.' },
+          { n: '05', title: 'Piscines maçonnées', body: 'Bassins en blocs à bancher, ferraillés et coulés sur place, margelles posées et terrain repris tout autour. Une piscine construite comme une maison : pour durer.' },
         ],
       },
 
       method: {
         label: 'Méthode',
-        count: '6 étapes',
+        count: '5 étapes',
         title: 'Une méthode, <em>pas des promesses</em>.',
         sub: 'Du premier rendez-vous à la réception, chaque étape est écrite avant de commencer.',
         steps: [
           { n: '1', title: 'Demandez votre devis', body: 'Gratuit et en ligne, en 3 minutes. Réponse sous 48 h.' },
-          { n: '2', title: 'Visite technique', body: 'Gratuite, chez vous, avec relevés et photos. 45 minutes.' },
-          { n: '3', title: 'Devis détaillé', body: 'Poste par poste, prix ferme, sous 48 h à 5 jours selon complexité.' },
-          { n: '4', title: 'Planning signé', body: 'Dates de début et de fin écrites, pénalités de retard à notre charge.' },
-          { n: '5', title: 'Chantier suivi', body: 'Point photo chaque semaine, conducteur de travaux joignable.' },
-          { n: '6', title: 'Réception & garanties', body: 'Visite de réception contradictoire, garantie décennale AXA.' },
+          { n: '2', title: 'Devis détaillé', body: 'Poste par poste, prix ferme, sous 48 h à 5 jours selon complexité.' },
+          { n: '3', title: 'Planning signé', body: 'Dates de début et de fin écrites, pénalités de retard à notre charge.' },
+          { n: '4', title: 'Chantier suivi', body: 'Point photo chaque semaine, conducteur de travaux joignable.' },
+          { n: '5', title: 'Réception & garanties', body: 'Visite de réception contradictoire, garantie décennale.' },
         ],
         guaranteesLabel: 'Garanties',
       },
@@ -217,11 +248,11 @@ export const content = {
       visit: {
         label: 'Contact',
         title: 'Parlons de <em>votre maison</em>.',
-        body: 'Visite technique gratuite, chez vous, avec relevés et photos. Devis détaillé poste par poste sous 48 h à 5 jours.',
+        body: 'Décrivez votre projet en ligne ou par téléphone. Devis détaillé poste par poste sous 48 h à 5 jours.',
         cta: 'Demander votre devis',
         callPrefix: 'ou appelez le',
         depot: 'Le dépôt',
-        depotNote: 'Bureau et atelier. Chantiers dans un rayon de 30 km.',
+        depotNote: 'Bureau et atelier. Chantiers à Belfort et dans toute la région.',
         hours: 'Horaires',
         write: 'Écrire',
       },
@@ -230,7 +261,7 @@ export const content = {
     devis: {
       head: {
         title: 'Votre devis commence <em>ici</em>.',
-        sub: 'Cinq étapes, trois minutes. Une fourchette de prix s’affiche au fil de vos réponses, puis un compagnon vous rappelle pour la visite technique.',
+        sub: 'Cinq étapes, trois minutes. Une fourchette de prix s’affiche au fil de vos réponses, puis un compagnon vous rappelle.',
       },
       trust: ['Gratuit et sans engagement', 'Réponse sous 48 h ouvrées', 'Vos photos restent privées'],
       steps: [
@@ -246,7 +277,7 @@ export const content = {
         empty: 'Choisissez un type de projet pour démarrer l’estimation.',
         range: 'Fourchette indicative',
         vat: 'TTC, finitions standard comprises',
-        disclaimer: 'Estimation indicative à partir de nos chantiers récents. Le prix ferme est établi après visite technique, sans engagement.',
+        disclaimer: 'Estimation indicative à partir de nos chantiers récents. Le prix ferme est établi sur devis détaillé, sans engagement.',
         surfaceLabel: 'Surface estimée',
         perM2: 'soit {price} €/m²',
       },
@@ -337,7 +368,7 @@ export const content = {
         lines: { maprimerenov: 'MaPrimeRénov’', cee: 'Prime énergie CEE', tva: 'TVA réduite à 5,5 %', tvaNote: 'appliquée au devis' },
         totalAids: 'Total des aides estimées',
         net: 'Reste estimé après aides',
-        disclaimer: 'Montants indicatifs 2026, sous réserve d’éligibilité confirmée sur <a href="https://france-renov.gouv.fr" target="_blank" rel="noopener">france-renov.gouv.fr</a>. Certifié RGE : condition d’accès aux aides, déjà remplie.',
+        disclaimer: 'Montants indicatifs 2026, sous réserve d’éligibilité confirmée sur <a href="https://france-renov.gouv.fr" target="_blank" rel="noopener">france-renov.gouv.fr</a>.',
       },
       step4: {
         title: 'Où vous joindre ?',
@@ -385,7 +416,6 @@ export const content = {
         next: 'La suite',
         nextItems: [
           { title: 'Prise de contact', body: 'Vérification des accès et des premières contraintes, 10 minutes au téléphone.' },
-          { title: 'Visite technique', body: 'Gratuite, chez vous, avec relevés et photos. 45 minutes.' },
           { title: 'Devis détaillé', body: 'Poste par poste, prix ferme, sous 48 h à 5 jours selon complexité.' },
         ],
         backHome: 'Retour à l’accueil',

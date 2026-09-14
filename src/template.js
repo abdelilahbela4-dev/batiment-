@@ -72,13 +72,19 @@ export function icon(name, cls = 'icon') {
   return `<span class="${cls}" data-icon="${name}">${svg}</span>`;
 }
 
-// Flat monogram: one roof stroke over AM, CONSTRUCTION spaced out beside it.
+// The company's own mark, traced from its site sign: the red roof with its
+// chimney and window, the eave running out into a long line. The name sits
+// under it, as on the sign, and takes the text colour of wherever it is.
+const HOUSE_MARK = '<path d="M3 240 L320 3 L447 79 L447 33 L502 33 L502 112 L643 196 L1395 208 L630 223 L320 44 L22 228 Z"/><rect x="276" y="132" width="37" height="50"/><rect x="320" y="132" width="37" height="50"/><rect x="276" y="189" width="37" height="52"/><rect x="320" y="189" width="37" height="52"/>';
+const LOGO_RED = '#C0392B';
+
 export function wordmark() {
-  return `<span class="wm"><span class="wm__mark"><svg viewBox="0 0 64 18" aria-hidden="true"><path d="M2 17 L32 2 L62 17"/></svg><span class="wm__am">AM</span></span><span class="wm__rule" aria-hidden="true"></span><span class="wm__name">Construction</span></span>`;
+  return `<span class="wm"><svg class="wm__mark" viewBox="0 0 1400 244" aria-hidden="true" focusable="false"><g fill="${LOGO_RED}">${HOUSE_MARK}</g></svg><span class="wm__name">AM Construction</span></span>`;
 }
 
+// Favicon: the house alone, on a transparent ground.
 const FAVICON = `data:image/svg+xml,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 34 34"><rect width="34" height="34" fill="#353A3D"/><g fill="none" stroke="#F7F6F3" stroke-width="2"><path d="M5 11 17 4.5 29 11"/><path d="M6 28 11 15 16 28M8 23.5h6"/><path d="M18.5 28V15l4.5 7 4.5-7v13"/></g></svg>'
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -203 650 650"><g fill="${LOGO_RED}">${HOUSE_MARK}</g></svg>`
 )}`;
 
 function head(ctx, title, desc, extra = '') {
@@ -326,13 +332,13 @@ function devisOverlay(ctx) {
     <!-- Step 4: Votre adresse -->
     <section class="dov__step" data-dov-step="3" hidden>
       <h2 class="dov__title">${isFr ? 'Adresse du chantier' : 'Site address'}</h2>
-      <p class="dov__sub">${isFr ? 'Pour situer votre projet et planifier la visite technique.' : 'To locate your project and plan the technical visit.'}</p>
+      <p class="dov__sub">${isFr ? 'Pour situer votre projet.' : 'To locate your project.'}</p>
       <div class="dov-grid">
         <div class="dov-field dov-field--full"><label for="dov-address">${isFr ? 'Adresse' : 'Address'}</label><input type="text" id="dov-address" name="dov-address" autocomplete="street-address" maxlength="200" placeholder="${isFr ? '14 rue des Artisans' : '14 rue des Artisans'}"></div>
         <div class="dov-field"><label for="dov-zip">${isFr ? 'Code postal' : 'Postal code'} <span class="dov-req">*</span></label><input type="text" id="dov-zip" name="dov-zip" autocomplete="postal-code" maxlength="10" placeholder="90000" inputmode="numeric" pattern="\\d{5}" required><p class="dov-error" data-dov-err="zip" hidden></p></div>
         <div class="dov-field"><label for="dov-city">${isFr ? 'Ville' : 'City'} <span class="dov-req">*</span></label><input type="text" id="dov-city" name="dov-city" autocomplete="address-level2" maxlength="100" placeholder="${isFr ? 'Belfort' : 'Belfort'}" required><p class="dov-error" data-dov-err="city" hidden></p></div>
       </div>
-      <p class="dov-zone-hint">${icon('pin')} ${isFr ? 'Nous intervenons dans le Territoire de Belfort et le Nord Franche-Comté.' : 'We operate in Territoire de Belfort and Nord Franche-Comté.'}</p>
+      <p class="dov-zone-hint">${icon('pin')} ${isFr ? 'Nous intervenons à Belfort, dans le Territoire de Belfort, le Nord Franche-Comté et les environs.' : 'We work in Belfort, Territoire de Belfort, Nord Franche-Comté and the surrounding area.'}</p>
     </section>
 
     <!-- Step 5: Validation -->
@@ -359,8 +365,8 @@ function devisOverlay(ctx) {
     <p class="dov-confirm__sub">${isFr ? 'Vous recevrez votre devis sous 48 h, par email ou WhatsApp.' : 'You will receive your quote within 48 hours, by email or WhatsApp.'}</p>
     <div class="dov-confirm__trust">
       <span>${icon('user')} ${isFr ? 'Un interlocuteur unique' : 'A single point of contact'}</span>
-      <span>${icon('shield')} ${isFr ? 'Garantie décennale AXA' : 'AXA 10-year warranty'}</span>
-      <span>${icon('check')} ${isFr ? 'Visite technique gratuite' : 'Free technical visit'}</span>
+      <span>${icon('shield')} ${isFr ? 'Garantie décennale' : '10-year warranty'}</span>
+      <span>${icon('check')} ${isFr ? 'Devis gratuit et sans engagement' : 'Free, no-obligation quote'}</span>
     </div>
     <div class="dov-confirm__ref" data-dov-ref></div>
     <p class="dov-confirm__warn" data-dov-photo-warn hidden></p>

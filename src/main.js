@@ -847,6 +847,12 @@ document.querySelectorAll('[data-year]').forEach((el) => {
     if (overlay) {
       const pastFilm = !stage || stage.getBoundingClientRect().bottom <= nav.offsetHeight + 1;
       nav.classList.toggle('is-solid', pastFilm);
+      // Over the film the logo fades out as the page moves, so it never sits on
+      // top of the titles or the roofs in the photographs. It is back as soon
+      // as the bar turns solid.
+      const fade = pastFilm ? 1 : clamp(1 - window.scrollY / (vh * 0.3), 0, 1);
+      nav.style.setProperty('--brand', fade.toFixed(3));
+      nav.classList.toggle('is-brand-gone', fade === 0);
     }
     // The last section whose top has crossed 40 % of the viewport is the active one.
     let active = -1;
