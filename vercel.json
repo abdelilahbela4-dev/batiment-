@@ -20,6 +20,21 @@
       "continue": true
     },
     {
+      "src": "^/(?:index\\.html)?$",
+      "status": 308,
+      "headers": { "Location": "/fr/" }
+    },
+    {
+      "src": "^/fr(?:/index\\.html)?$",
+      "status": 308,
+      "headers": { "Location": "/fr/" }
+    },
+    {
+      "src": "^/fr/devis(?:/index\\.html)?$",
+      "status": 308,
+      "headers": { "Location": "/fr/devis/" }
+    },
+    {
       "src": "/admin/(.*)",
       "dest": "https://admin-rho-one-33.vercel.app/admin/$1"
     },

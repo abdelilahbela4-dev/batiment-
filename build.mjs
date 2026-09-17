@@ -118,6 +118,9 @@ async function build() {
     title: 'Page introuvable · AM Construction',
     desc: 'Cette page n’existe pas ou a été déplacée.',
     bodyClass: 'page-404',
+    // Reachable directly as /404.html with a 200: kept out of Google so it is
+    // never taken for a copy of the home page.
+    headExtra: '<meta name="robots" content="noindex">',
     main: `
 <section class="section notfound">
   <div class="wrap">
