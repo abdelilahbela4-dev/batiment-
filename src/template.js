@@ -82,10 +82,13 @@ export function wordmark() {
   return `<span class="wm"><svg class="wm__mark" viewBox="0 0 1400 244" aria-hidden="true" focusable="false"><g fill="${LOGO_RED}">${HOUSE_MARK}</g></svg><span class="wm__name">AM Construction</span></span>`;
 }
 
-// Favicon: the house alone, on a transparent ground.
-const FAVICON = `data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -203 650 650"><g fill="${LOGO_RED}">${HOUSE_MARK}</g></svg>`
-)}`;
+// Favicon: the red house alone on white (the long eave line would be an
+// unreadable sliver in a small square). Served as real files from public/ -
+// Google shows only icons it can fetch as files, never an inline data: URI.
+const FAVICON_LINKS = `<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">`;
 
 function head(ctx, title, desc, extra = '') {
   const { lang, t } = ctx;
@@ -105,7 +108,7 @@ function head(ctx, title, desc, extra = '') {
 <meta property="og:url" content="${canonical}">
 <meta property="og:locale" content="fr_FR">
 <meta name="theme-color" content="#EDEBE6">
-<link rel="icon" href="${FAVICON}">
+${FAVICON_LINKS}
 <link rel="preload" as="font" type="font/woff2" href="/assets/media/fonts/newsreader-300-400-v26.woff2" crossorigin>
 <link rel="stylesheet" href="/assets/styles.css">
 ${ctx.page === 'home' ? `<link rel="preload" as="image" href="/frames/desktop/frame_0001.webp" media="(min-width: 861px)">
