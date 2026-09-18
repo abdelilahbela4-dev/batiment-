@@ -76,7 +76,7 @@ function planSvg(label) {
 // the work happened: the earlier stages first, then the finished work, larger.
 function shot(st, k, sizes) {
   return `<figure class="ba__shot">
-          <div class="win ba__win" data-window>${pic('transformations', st.img, { alt: st.alt, w: 1800, h: 1344, sizes })}
+          <div class="win ba__win" data-window>${pic('transformations', st.img, { alt: st.alt, w: st.w || 1800, h: st.h || 1344, sizes })}
             <span class="label ba__tag">${st.name}</span>
           </div>
           <figcaption class="ba__caption"><span class="label num">${pad(k + 1)}</span> ${st.caption}</figcaption>

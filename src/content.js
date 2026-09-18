@@ -3,8 +3,8 @@
 
 export const LANGS = ['fr'];
 
-const PHONE_FR = '06 46 22 79 93';
-const PHONE_INT = '+33 6 46 22 79 93';
+const PHONE_FR = '06 46 22 72 93';
+const PHONE_INT = '+33 6 46 22 72 93';
 
 export const content = {
   fr: {
@@ -137,6 +137,8 @@ export const content = {
 
       // Before / after: each stage is a photo in src/media/transformations
       // (`${img}-960.jpg`, `-1800.jpg` and the WebP widths), listed in order.
+      // A photo smaller than 1800 px gives its own w and h (its -1800.jpg is
+      // then its full size, not enlarged).
       // The last stage is the finished work and is shown largest; a job can
       // have two or three stages.
       transformations: {
@@ -160,7 +162,7 @@ export const content = {
             title: 'Piscine maçonnée',
             body: 'Un bassin monté en blocs à bancher, ferraillé et coulé, puis habillé de margelles claires. Le terrain est repris tout autour : le jardin retrouve sa place, la piscine en plus.',
             stages: [
-              { name: 'Avant', caption: 'Bassin monté en blocs à bancher', img: 'piscine-avant', alt: 'Chantier de piscine : bassin rectangulaire en blocs à bancher avec armatures métalliques, terre retournée autour, maison en arrière-plan' },
+              { name: 'Avant', caption: 'Bassin monté en blocs à bancher', img: 'piscine-avant', w: 1080, h: 810, alt: 'Chantier de piscine : bassin en blocs à bancher avec armatures métalliques et escalier maçonné, camion-pompe à béton et maisons en construction en arrière-plan' },
               { name: 'Après', caption: 'Margelles posées, jardin rendu', img: 'piscine-apres', alt: 'Piscine rectangulaire terminée avec margelles claires, eau bleue, au milieu d’une pelouse neuve entre deux maisons' },
             ],
           },
@@ -206,7 +208,6 @@ export const content = {
           'Compagnon maçon formé au Tour de France, Aziz Amellah a toujours construit bien plus que des murs.',
           'Ce qui devait être un métier est devenu une vocation. Année après année, les chantiers se sont enchaînés, les projets ont grandi, les équipes aussi. Sans jamais perdre l’essentiel : le goût du travail bien fait et la parole donnée.',
           'Il ne pensait pas un jour aller aussi loin, ni voir autant de personnes lui confier leur maison, leur rénovation, leur projet. Mais une chose n’a jamais changé : quand Aziz dit qu’il fera quelque chose, il le fait.',
-          'Au Maroc, on dit « 3endo lkelma » — il a une parole qui compte.',
           'C’est cette valeur qui guide encore chaque chantier : être présent, tenir ses engagements et laisser derrière soi un travail dont on peut être fier.',
         ],
         quote: 'Ce qu’on écrit, on le construit.',
