@@ -332,7 +332,16 @@ main { padding-top: var(--nav-h); }
   padding-top: calc(var(--nav-h) + clamp(20px, 5vh, 56px));
 }
 .beat--open .beat__body { flex: 1; display: flex; flex-direction: column; align-items: center; }
-.hero__title {
+.hero__title { text-align: center; }
+/* Même traitement que .hero__sub (Archivo, casse normale, pas d'interlettrage),
+   juste un cran plus petit : le hero ne doit donner qu'une seule voix de texte. */
+.hero-kicker {
+  display: block; margin-bottom: 1rem;
+  font: 400 17px/1.5 var(--sans); color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 16px rgba(20, 22, 24, 0.4);
+}
+.hero-slogan {
+  display: block; margin-inline: auto;
   font: 300 var(--t-112)/0.96 var(--serif); letter-spacing: -0.02em;
   text-align: center; max-width: 16ch; text-wrap: balance;
   text-shadow: 0 2px 30px rgba(20, 22, 24, 0.35);
@@ -1185,7 +1194,8 @@ output[data-surface-out] { font-family: var(--font-mono); font-weight: 700; colo
     opacity: clamp(0, calc(var(--seq, 0) * 4 - 2.2), 1);
     transform: translateY(clamp(0px, calc(28px - var(--seq, 0) * 40px), 28px));
   }
-  .hero__title { font-size: clamp(40px, 11vw, 64px); line-height: 1.02; max-width: 100%; }
+  .hero-slogan { font-size: clamp(40px, 11vw, 64px); line-height: 1.02; max-width: 100%; }
+  .hero-kicker { font-size: 15px; margin-bottom: 0.75rem; }
   .hero__sub { align-self: stretch; text-align: center; font-size: 16px; max-width: none; }
   .hero__actions { align-self: stretch; flex-direction: column; align-items: stretch; gap: 12px; }
   .hero__actions .btn { width: 100%; }

@@ -34,8 +34,8 @@ export const content = {
 
     meta: {
       home: {
-        title: 'AM Construction · Construction & rénovation à Belfort (90) et environs',
-        desc: 'Entreprise générale du bâtiment à Belfort et dans les environs : construction de maisons, rénovation, ouvertures de murs porteurs, piscines maçonnées. Devis détaillé, garantie décennale.',
+        title: 'Maçon à Belfort (90) · Construction & rénovation | AM Construction',
+        desc: 'Maçon à Belfort : construction de maisons, rénovation, ouvertures de murs porteurs et piscines maçonnées. Devis gratuit sous 48 h, garantie décennale.',
       },
       devis: {
         title: 'Demander votre devis · AM Construction',
@@ -62,6 +62,9 @@ export const content = {
 
     home: {
       hero: {
+        // Petite ligne de rappel au-dessus du slogan : elle dit le métier et la ville
+        // pour Google, dans le même <h1>, sans changer l'allure du slogan.
+        kicker: 'Maçon à Belfort · Construction et rénovation',
         title: 'On vous rend la maison <em>finie</em>.',
         sub: 'Construction, rénovation, ouvertures de murs porteurs et piscines, à Belfort et dans les environs. Un interlocuteur, un planning contractuel, un budget tenu.',
         cta: 'Demander votre devis',

@@ -198,7 +198,7 @@ function homePage(ctx) {
     <div class="beat beat--open">
       <div class="beat__inner">
         <div class="beat__body">
-          <h1 class="hero__title">${h.hero.title}</h1>
+          <h1 class="hero__title"><span class="hero-kicker">${h.hero.kicker}</span><span class="hero-slogan">${h.hero.title}</span></h1>
           <p class="hero__sub">${h.hero.sub}</p>
           <div class="hero__actions">
             <a class="btn btn--blanc btn--lg" href="${url('devis')}">${h.hero.cta}</a>
